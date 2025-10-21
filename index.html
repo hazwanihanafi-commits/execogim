@@ -1,15 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Welcome | EXECOGIM</title>
-
-  <meta name="theme-color" content="#660099" />
-  <link rel="stylesheet" href="style.css" />
+  <meta name="theme-color" content="#660099">
 
   <style>
-    /* --- Splash Animation Styles --- */
     body {
       margin: 0;
       padding: 0;
@@ -21,12 +18,13 @@
       justify-content: center;
       align-items: center;
       overflow: hidden;
+      text-align: center;
       animation: fadeIn 1s ease-in-out;
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: scale(0.95); }
-      to { opacity: 1; transform: scale(1); }
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .logo {
@@ -42,21 +40,27 @@
     }
 
     h1 {
-      font-size: 1.6em;
+      font-size: 1.8em;
       color: #4b0082;
       margin: 15px 0 5px;
-      animation: fadeIn 2s ease forwards;
     }
 
     h2 {
       color: #6b21a8;
       font-weight: 500;
       font-size: 1em;
-      margin-bottom: 30px;
-      animation: fadeIn 2.2s ease forwards;
+      margin-bottom: 25px;
     }
 
-    .button {
+    p {
+      max-width: 420px;
+      font-size: 1.05em;
+      line-height: 1.6em;
+      color: #333;
+      margin-bottom: 30px;
+    }
+
+    a.button {
       background: #5b21b6;
       color: white;
       padding: 14px 36px;
@@ -64,12 +68,12 @@
       text-decoration: none;
       font-size: 1.1em;
       font-weight: 600;
-      transition: background 0.3s ease;
-      animation: fadeIn 2.5s ease forwards;
+      transition: background 0.3s ease, transform 0.2s ease;
     }
 
-    .button:hover {
+    a.button:hover {
       background: #4c1d95;
+      transform: scale(1.05);
     }
 
     footer {
@@ -77,26 +81,18 @@
       bottom: 20px;
       font-size: 0.8em;
       color: #6b7280;
-      animation: fadeIn 3s ease forwards;
+      animation: fadeIn 2.2s ease forwards;
     }
   </style>
-
-  <script>
-    // Auto-redirect after 3 seconds (optional)
-    window.addEventListener("load", () => {
-      setTimeout(() => {
-        window.location.href = "app.html"; // main app page
-      }, 3000);
-    });
-  </script>
 </head>
 
 <body>
-  <img src="icons/icon-192.png" alt="EXECOGIM logo" class="logo" />
+  <img src="icons/icon-192.png" alt="EXECOGIM logo" class="logo">
   <h1>Welcome to EXECOGIM</h1>
   <h2>Clinical Exercise Prescription App</h2>
-
-  <!-- Optional manual entry button (keep if you don’t want auto redirect only) -->
+  <p>Malaysia’s first genotype-informed exercise prescription tool, developed at <strong>Universiti Sains Malaysia | IPPT</strong>.</p>
+  
+  <!-- ✅ Main Button to Enter the App -->
   <a href="app.html" class="button">Enter App</a>
 
   <footer>© 2025 Universiti Sains Malaysia | IPPT</footer>
