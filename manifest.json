@@ -3,7 +3,7 @@
   "short_name": "EXECOGIM",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "background_color": "#f8f6ff",
   "theme_color": "#660099",
   "icons": [
   {
@@ -18,4 +18,5 @@
   }
 ]
 }
+
 
