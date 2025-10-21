@@ -4,13 +4,27 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>EXECOGIM — Clinical Exercise Prescription App</title>
-  
+
+<!-- ✅ PWA Essentials -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#660099">
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then(() => console.log('✅ Service Worker registered'))
+      .catch(err => console.log('❌ Service Worker failed:', err));
+  }
+</script>
+
+<!-- ✅ Styles & Libraries -->
 <link rel="stylesheet" href="style.css">
-<!-- jsPDF + AutoTable -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 </head>
+
 <body>
+  <!-- Header -->
   <header class="banner">
     <div class="banner-inner">
       <div class="title">
@@ -21,7 +35,36 @@
     </div>
   </header>
 
+  <!-- ✅ Install Banner -->
+  <div id="installContainer" style="
+    display:none;
+    position:fixed;
+    bottom:0;
+    left:0;
+    width:100%;
+    background:white;
+    box-shadow:0 -2px 8px rgba(0,0,0,0.1);
+    padding:16px;
+    text-align:center;
+    z-index:1000;
+  ">
+    <p style="font-weight:500; color:#333; margin:0 0 10px;">
+      📲 Add <strong>EXECOGIM</strong> to your home screen
+    </p>
+    <button id="installBtn" style="
+      background:#5b21b6;
+      color:white;
+      padding:10px 22px;
+      border:none;
+      border-radius:8px;
+      font-weight:600;
+      cursor:pointer;
+    ">Install App</button>
+  </div>
+
+  <!-- Main Content -->
   <main class="container">
+    <!-- Onboarding -->
     <section id="onboard" class="card onboard-card">
       <h2>Welcome — Quick Tour</h2>
       <p>This app creates genotype-informed exercise plans (BDNF Val66Met) and captures pre/post assessments for clinical or research use.</p>
@@ -39,18 +82,31 @@
       <form id="inputForm" class="form-grid">
         <!-- Participant Info -->
         <div class="col">
-          <label>Participant name <span class="info" data-tip="Full legal name">ℹ️</span>
-            <input type="text" id="participant_name" placeholder="Full name"></label>
+          <label>Participant name 
+            <span class="info" data-tip="Full legal name">ℹ️</span>
+            <input type="text" id="participant_name" placeholder="Full name">
+          </label>
           <label>Date of birth <input type="date" id="dob"></label>
-          <label>Genotype <span class="info" data-tip="Val/Val = typical BDNF secretion; Met = lower BDNF release">ℹ️</span>
-      <select id="genotype">
-        <option value="Val/Val">Val/Val</option>
-        <option value="Met">Met carrier</option>
-      </select>
-    </label>
+          <label>Genotype 
+            <span class="info" data-tip="Val/Val = typical BDNF secretion; Met = lower BDNF release">ℹ️</span>
+            <select id="genotype">
+              <option value="Val/Val">Val/Val</option>
+              <option value="Met">Met carrier</option>
+            </select>
+          </label>
           <label>Age <input type="number" id="age" min="12" max="100" value="65"></label>
-          <label>Fitness level <input id="fitness_slider" type="range" min="1" max="5" value="3"><div class="slider-labels"><span>Low</span><span>Moderate</span><span>High</span></div></label>
-          <label>Constraints <div class="constraints"><label><input type="checkbox" name="constraint" value="knee"> Knee</label><label><input type="checkbox" name="constraint" value="shoulder"> Shoulder</label><label><input type="checkbox" name="constraint" value="hypertension"> Hypertension</label><label><input type="checkbox" name="constraint" value="balance"> Balance</label></div></label>
+          <label>Fitness level 
+            <input id="fitness_slider" type="range" min="1" max="5" value="3">
+            <div class="slider-labels"><span>Low</span><span>Moderate</span><span>High</span></div>
+          </label>
+          <label>Constraints 
+            <div class="constraints">
+              <label><input type="checkbox" name="constraint" value="knee"> Knee</label>
+              <label><input type="checkbox" name="constraint" value="shoulder"> Shoulder</label>
+              <label><input type="checkbox" name="constraint" value="hypertension"> Hypertension</label>
+              <label><input type="checkbox" name="constraint" value="balance"> Balance</label>
+            </div>
+          </label>
         </div>
 
         <!-- Pre-assessment -->
@@ -89,7 +145,6 @@
           <button type="button" id="downloadCsv" class="btn">Download CSV Log</button>
         </div>
       </form>
-
       <div id="result" style="display:planner;">
         <h3 id="result-title"></h3>
         <div id="summary"></div>
@@ -97,41 +152,23 @@
       </div>
     </section>
 
-    <!-- Adherence -->
+    <!-- Progress -->
     <section id="progress" class="card">
       <h2>Weekly Progress & Adherence</h2>
       <p>Mark sessions completed each week to track adherence.</p>
       <div id="weeklyChecks" class="weekly-checks"></div>
-      <div id="adherenceWeekSummary" class="card" style="margin-top:12px;"><h4>Adherence by Week</h4><div id="adherenceWeeksContainer"></div></div>
-      <div class="progress-overview"><label>Overall adherence</label><div class="progress-bar"><div id="adherenceBar" class="progress-fill" style="width:0%"></div></div><div id="adherencePct">0%</div></div>
+      <div id="adherenceWeekSummary" class="card" style="margin-top:12px;">
+        <h4>Adherence by Week</h4>
+        <div id="adherenceWeeksContainer"></div>
+      </div>
+      <div class="progress-overview">
+        <label>Overall adherence</label>
+        <div class="progress-bar">
+          <div id="adherenceBar" class="progress-fill" style="width:0%"></div>
+        </div>
+        <div id="adherencePct">0%</div>
+      </div>
       <div id="badges" class="badges"></div>
-    </section>
-
-    <!-- Normative Values -->
-    <section id="norms" class="card">
-      <h2>Assessment Normative Values</h2>
-      <p>Reference values for clinical interpretation (healthy populations).</p>
-      <div class="table-container">
-        <table class="norms-table">
-          <thead>
-            <tr><th>Test</th><th>What It Measures</th><th>Standard / Normative Value</th></tr>
-          </thead>
-          <tbody>
-            <tr><td><strong>MoCA Total</strong></td><td>Global Cognition</td><td>≥ 26 (Normal)</td></tr>
-            <tr><td><strong>Digit Span Forward</strong></td><td>Attention / Short-term Memory</td><td>5–7 digits</td></tr>
-            <tr><td><strong>Digit Span Backward</strong></td><td>Working Memory</td><td>3–5 digits</td></tr>
-            <tr><td><strong>TMT A (s)</strong></td><td>Processing Speed</td><td>~29–46 s (age-dependent)</td></tr>
-            <tr><td><strong>TMT B (s)</strong></td><td>Executive Function</td><td>~75–150 s (age-dependent); &lt;90s ideal</td></tr>
-            <tr><td><strong>6MWT (m)</strong></td><td>Endurance / Functional Capacity</td><td>400–700 m (men), 350–650 m (women)</td></tr>
-            <tr><td><strong>TUG (s)</strong></td><td>Mobility / Fall Risk</td><td>&lt; 10 s (Low risk); &gt; 14 s (High risk)</td></tr>
-            <tr><td><strong>Handgrip (kg)</strong></td><td>Muscle Strength</td><td>Men: 46–50 kg; Women: 29–31 kg</td></tr>
-            <tr><td><strong>BBS (0–56)</strong></td><td>Balance / Fall Risk</td><td>&gt; 45 (Low risk); &lt; 45 (Increased risk)</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="disclaimer">
-        <strong>Disclaimer:</strong> These values are approximate and for informational purposes only. Clinical interpretation should be done by a qualified professional using age- and population-adjusted norms.
-      </div>
     </section>
 
     <!-- Visual Guides -->
@@ -171,6 +208,37 @@
     </div>
   </div>
 
-<script src="script_v5.js"></script>
+  <!-- Scripts -->
+  <script src="script_v5.js"></script>
+
+  <!-- ✅ Install Banner Logic -->
+  <script>
+    let deferredPrompt;
+    const installContainer = document.getElementById('installContainer');
+    const installBtn = document.getElementById('installBtn');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installContainer.style.display = 'block';
+    });
+
+    installBtn.addEventListener('click', async () => {
+      installContainer.style.display = 'none';
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        console.log('✅ EXECOGIM installed');
+      } else {
+        console.log('❌ User dismissed install');
+      }
+      deferredPrompt = null;
+    });
+
+    window.addEventListener('appinstalled', () => {
+      console.log('✅ EXECOGIM already installed');
+      installContainer.style.display = 'none';
+    });
+  </script>
 </body>
 </html>
