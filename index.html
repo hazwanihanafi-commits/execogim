@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Welcome | EXECOGIM</title>
+
+  <meta name="theme-color" content="#660099" />
+  <link rel="stylesheet" href="style.css" />
+
+  <style>
+    /* --- Splash Animation Styles --- */
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      background: linear-gradient(180deg, #f8f6ff 0%, #ffffff 100%);
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .logo {
+      width: 140px;
+      height: 140px;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+
+    h1 {
+      font-size: 1.6em;
+      color: #4b0082;
+      margin: 15px 0 5px;
+      animation: fadeIn 2s ease forwards;
+    }
+
+    h2 {
+      color: #6b21a8;
+      font-weight: 500;
+      font-size: 1em;
+      margin-bottom: 30px;
+      animation: fadeIn 2.2s ease forwards;
+    }
+
+    .button {
+      background: #5b21b6;
+      color: white;
+      padding: 14px 36px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-size: 1.1em;
+      font-weight: 600;
+      transition: background 0.3s ease;
+      animation: fadeIn 2.5s ease forwards;
+    }
+
+    .button:hover {
+      background: #4c1d95;
+    }
+
+    footer {
+      position: absolute;
+      bottom: 20px;
+      font-size: 0.8em;
+      color: #6b7280;
+      animation: fadeIn 3s ease forwards;
+    }
+  </style>
+
+  <script>
+    // Auto-redirect after 3 seconds (optional)
+    window.addEventListener("load", () => {
+      setTimeout(() => {
+        window.location.href = "app.html"; // main app page
+      }, 3000);
+    });
+  </script>
+</head>
+
+<body>
+  <img src="icons/icon-192.png" alt="EXECOGIM logo" class="logo" />
+  <h1>Welcome to EXECOGIM</h1>
+  <h2>Clinical Exercise Prescription App</h2>
+
+  <!-- Optional manual entry button (keep if you don’t want auto redirect only) -->
+  <a href="app.html" class="button">Enter App</a>
+
+  <footer>© 2025 Universiti Sains Malaysia | IPPT</footer>
+</body>
+</html>
