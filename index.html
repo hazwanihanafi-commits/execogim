@@ -3,7 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EXECOGIM — Clinical Exercise Prescription App</title>
+  <title>EXECOGIM — Clinical Exercise Prescription App</title><link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#660099">
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then(() => console.log("Service Worker registered"))
+      .catch(err => console.log("Service Worker failed: ", err));
+  }
+</script>
   <style>
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(20px); }
