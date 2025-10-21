@@ -165,7 +165,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
     const r = window.currentReport; if(!r){ alert('Generate a plan first'); return; }
     const { jsPDF } = window.jspdf; const doc = new jsPDF({unit:'pt', format:'a4'}); const margin=36; let y=36;
     // header logo
-    try{ const res = await fetch('assets/usm_ippt_logos.png'); const blob = await res.blob(); const reader = new FileReader(); reader.onloadend = ()=>{ const dataUrl = reader.result; doc.addImage(dataUrl,'PNG',margin,y,120,40); proceed(); }; reader.readAsDataURL(blob); }catch(e){ proceed(); }
+    try{ const res = await fetch('usm_ippt_logos.png'); const blob = await res.blob(); const reader = new FileReader(); reader.onloadend = ()=>{ const dataUrl = reader.result; doc.addImage(dataUrl,'PNG',margin,y,120,40); proceed(); }; reader.readAsDataURL(blob); }catch(e){ proceed(); }
     function proceed(){
       doc.setFontSize(14); doc.setTextColor(60,22,102); doc.text('Clinical Exercise Prescription Report', margin+140, y+16); y+=60;
       doc.setFontSize(11); doc.text(`Participant: ${r.participant}`, margin, y); doc.text(`Genotype: ${r.genotype}`, margin+300, y); y+=16;
@@ -192,7 +192,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
       doc.addPage(); doc.setFontSize(12); doc.text('Weekly Adherence Summary', margin, 60); doc.setFontSize(10); doc.text(`Total sessions: ${total} — Completed: ${done} — Adherence: ${Math.round(total?done/total*100:0)}%`, margin, 80);
       doc.addPage(); doc.setFontSize(12); doc.text('Consent Form', margin, 60); doc.setFontSize(10); doc.text('I confirm that I have received information about the exercise program. I understand the risks and benefits and consent to participate. I confirm that I have disclosed any medical conditions to the clinician.', margin, 80, {maxWidth:520});
       doc.setFontSize(9); doc.text('Assoc. Prof. Dr. Hazwani Ahmad Yusof @ Hanafi', margin, 760); doc.text('IPPT, Universiti Sains Malaysia', margin, 774);
-      doc.save(`${(r.participant||'participant').replace(/\s+/g,'_')}_execogim_v5_report.pdf`);
+      doc.save(`${(r.participant||'participant').replace(/\s+/g,'_')}_execogim_report.pdf`);
     }
   });
   
