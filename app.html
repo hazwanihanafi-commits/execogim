@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>EXECOGIM — Clinical Exercise Prescription App</title>
+<link rel="stylesheet" href="style.css">
+<!-- jsPDF + AutoTable -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+  <header class="banner">
+    <div class="banner-inner">
+      <div class="title">
+        <h1>EXECOGIM</h1>
+        <p class="subtitle">Clinical Exercise Prescription App</p>
+        <p class="subtitle">Universiti Sains Malaysia | IPPT</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section id="onboard" class="card onboard-card">
+      <h2>Welcome — Quick Tour</h2>
+      <p>This app creates genotype-informed exercise plans (BDNF Val66Met) and captures pre/post assessments for clinical or research use.</p>
+      <ul>
+        <li>Fill participant details and baseline tests</li>
+        <li>Generate a 12-week, genotype-specific plan</li>
+        <li>Track weekly adherence and export reports</li>
+      </ul>
+      <button id="closeOnboard" class="btn">Close tour</button>
+    </section>
+
+    <!-- Participant and Baseline -->
+    <section id="planner" class="card">
+      <h2>Participant & Assessments</h2>
+      <form id="inputForm" class="form-grid">
+        <!-- Participant Info -->
+        <div class="col">
+          <label>Participant name <span class="info" data-tip="Full legal name">ℹ️</span>
+            <input type="text" id="participant_name" placeholder="Full name"></label>
+          <label>Date of birth <input type="date" id="dob"></label>
+          <label>Genotype <span class="info" data-tip="Val/Val = typical BDNF secretion; Met = lower BDNF release">ℹ️</span>
+      <select id="genotype">
+        <option value="Val/Val">Val/Val</option>
+        <option value="Met">Met carrier</option>
+      </select>
+    </label>
+          <label>Age <input type="number" id="age" min="12" max="100" value="65"></label>
+          <label>Fitness level <input id="fitness_slider" type="range" min="1" max="5" value="3"><div class="slider-labels"><span>Low</span><span>Moderate</span><span>High</span></div></label>
+          <label>Constraints <div class="constraints"><label><input type="checkbox" name="constraint" value="knee"> Knee</label><label><input type="checkbox" name="constraint" value="shoulder"> Shoulder</label><label><input type="checkbox" name="constraint" value="hypertension"> Hypertension</label><label><input type="checkbox" name="constraint" value="balance"> Balance</label></div></label>
+        </div>
+
+        <!-- Pre-assessment -->
+        <div class="col">
+          <h4>Pre-assessment — Cognitive</h4>
+          <label>MoCA total<input type="number" id="moca_pre" min="0" max="30"></label>
+          <label>Digit Span forward<input type="number" id="digitf_pre" min="0"></label>
+          <label>Digit Span backward<input type="number" id="digitb_pre" min="0"></label>
+          <label>TMT A (s)<input type="number" id="tmt_a_pre" min="0"></label>
+          <label>TMT B (s)<input type="number" id="tmt_b_pre" min="0"></label>
+          <h4>Pre-assessment — Physical</h4>
+          <label>6MWT (m)<input type="number" id="sixmwt_pre" min="0"></label>
+          <label>TUG (s)<input type="number" id="tug_pre" min="0"></label>
+          <label>Handgrip (kg)<input type="number" id="grip_pre" min="0"></label>
+          <label>BBS (0-56)<input type="number" id="bbs_pre" min="0" max="56"></label>
+        </div>
+
+        <!-- Post-assessment -->
+        <div class="col">
+          <h4>Post-assessment — Cognitive</h4>
+          <label>MoCA total<input type="number" id="moca_post" min="0" max="30"></label>
+          <label>Digit Span forward<input type="number" id="digitf_post" min="0"></label>
+          <label>Digit Span backward<input type="number" id="digitb_post" min="0"></label>
+          <label>TMT A (s)<input type="number" id="tmt_a_post" min="0"></label>
+          <label>TMT B (s)<input type="number" id="tmt_b_post" min="0"></label>
+          <h4>Post-assessment — Physical</h4>
+          <label>6MWT (m)<input type="number" id="sixmwt_post" min="0"></label>
+          <label>TUG (s)<input type="number" id="tug_post" min="0"></label>
+          <label>Handgrip (kg)<input type="number" id="grip_post" min="0"></label>
+          <label>BBS (0-56)<input type="number" id="bbs_post" min="0" max="56"></label>
+        </div>
+
+        <div class="form-actions fullwidth">
+          <button type="submit" class="btn">Generate 12-Week Plan</button>
+          <button type="button" id="exportPdf" class="btn">Export Report (PDF)</button>
+          <button type="button" id="downloadCsv" class="btn">Download CSV Log</button>
+        </div>
+      </form>
+
+      <div id="result" style="display:planner;">
+        <h3 id="result-title"></h3>
+        <div id="summary"></div>
+        <div id="weeks"></div>
+      </div>
+    </section>
+
+    <!-- Adherence -->
+    <section id="progress" class="card">
+      <h2>Weekly Progress & Adherence</h2>
+      <p>Mark sessions completed each week to track adherence.</p>
+      <div id="weeklyChecks" class="weekly-checks"></div>
+      <div id="adherenceWeekSummary" class="card" style="margin-top:12px;"><h4>Adherence by Week</h4><div id="adherenceWeeksContainer"></div></div>
+      <div class="progress-overview"><label>Overall adherence</label><div class="progress-bar"><div id="adherenceBar" class="progress-fill" style="width:0%"></div></div><div id="adherencePct">0%</div></div>
+      <div id="badges" class="badges"></div>
+    </section>
+
+    <!-- Normative Values -->
+    <section id="norms" class="card">
+      <h2>Assessment Normative Values</h2>
+      <p>Reference values for clinical interpretation (healthy populations).</p>
+      <div class="table-container">
+        <table class="norms-table">
+          <thead>
+            <tr><th>Test</th><th>What It Measures</th><th>Standard / Normative Value</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>MoCA Total</strong></td><td>Global Cognition</td><td>≥ 26 (Normal)</td></tr>
+            <tr><td><strong>Digit Span Forward</strong></td><td>Attention / Short-term Memory</td><td>5–7 digits</td></tr>
+            <tr><td><strong>Digit Span Backward</strong></td><td>Working Memory</td><td>3–5 digits</td></tr>
+            <tr><td><strong>TMT A (s)</strong></td><td>Processing Speed</td><td>~29–46 s (age-dependent)</td></tr>
+            <tr><td><strong>TMT B (s)</strong></td><td>Executive Function</td><td>~75–150 s (age-dependent); &lt;90s ideal</td></tr>
+            <tr><td><strong>6MWT (m)</strong></td><td>Endurance / Functional Capacity</td><td>400–700 m (men), 350–650 m (women)</td></tr>
+            <tr><td><strong>TUG (s)</strong></td><td>Mobility / Fall Risk</td><td>&lt; 10 s (Low risk); &gt; 14 s (High risk)</td></tr>
+            <tr><td><strong>Handgrip (kg)</strong></td><td>Muscle Strength</td><td>Men: 46–50 kg; Women: 29–31 kg</td></tr>
+            <tr><td><strong>BBS (0–56)</strong></td><td>Balance / Fall Risk</td><td>&gt; 45 (Low risk); &lt; 45 (Increased risk)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="disclaimer">
+        <strong>Disclaimer:</strong> These values are approximate and for informational purposes only. Clinical interpretation should be done by a qualified professional using age- and population-adjusted norms.
+      </div>
+    </section>
+
+    <!-- Visual Guides -->
+    <section id="visual-guides" class="card">
+      <h2>Visual Guides</h2>
+      <div class="gallery">
+        <figure><img src="assets/exe_cogim_poster.png" alt="EXECOGIM"><figcaption>EXECOGIM</figcaption></figure>
+        <figure><img src="assets/exercise_concepts.png" alt="Concepts"><figcaption>Exercise Concepts</figcaption></figure>
+        <figure><img src="assets/exercise_prescription.png" alt="Prescription"><figcaption>Exercise Prescription</figcaption></figure>
+      </div>
+    </section>
+
+    <!-- About -->
+    <section id="about" class="card">
+      <h2>About & Evidence</h2>
+      <p>This app applies personalized exercise planning based on BDNF Val66Met polymorphism to optimize cognitive and physical benefits. Data are stored locally for participant privacy.</p>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer card">
+      <div class="footer-inner">
+        <div>Assoc. Prof. Dr. Hazwani Ahmad Yusof @ Hanafi<br>IPPT, Universiti Sains Malaysia</div>
+        <div class="small">This app is for research/education. Consult a clinician before starting any exercise program.</div>
+      </div>
+    </footer>
+  </main>
+
+  <!-- Exercise Modal -->
+  <div id="exerciseModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <span id="modalClose" class="modal-close">×</span>
+      <h3 id="modalTitle">Exercise</h3>
+      <img id="modalImg" src="" alt="exercise" style="max-width:100%;border-radius:6px">
+      <p id="modalDesc"></p>
+      <p><strong>Sets / Reps:</strong> <span id="modalSets"></span></p>
+      <button id="modalAlt" class="btn ghost">Show Alternative</button>
+    </div>
+  </div>
+
+<script src="script_v5.js"></script>
+</body>
+</html>
