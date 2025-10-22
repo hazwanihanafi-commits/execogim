@@ -13,6 +13,19 @@ document.addEventListener("DOMContentLoaded", () => {
   const modalBody = document.getElementById("modalBody");
   const modalClose = document.getElementById("modalClose");
 
+  // --- Onboarding Close Button ---
+  const onboardCard = document.querySelector(".card");
+  const closeOnboard = document.getElementById("closeOnboard");
+  if (closeOnboard && onboardCard) {
+    closeOnboard.addEventListener("click", () => {
+      onboardCard.style.transition = "opacity 0.4s ease";
+      onboardCard.style.opacity = "0";
+      setTimeout(() => {
+        onboardCard.style.display = "none";
+      }, 400);
+    });
+  }
+
   // Normative references (general adults)
   const norms = {
     moca: "Normal: ≥26/30 (Mild impairment <26)",
