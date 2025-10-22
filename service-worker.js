@@ -1,7 +1,7 @@
 // =======================================
 // EXECOGIM — Service Worker (v2.0)
 // =======================================
-const CACHE_NAME = "execogim-cache-v2";
+const CACHE_NAME = "execogim-cache-v3";
 
 // ✅ Core files to cache (update this list when adding new files)
 const ASSETS_TO_CACHE = [
@@ -77,3 +77,4 @@ self.addEventListener("fetch", (event) => {
     })
   );
 });
+
