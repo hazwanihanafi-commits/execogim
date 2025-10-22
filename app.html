@@ -5,20 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>EXECOGIM — Clinical Exercise Prescription App</title>
 
-<!-- ✅ PWA Essentials -->
-<link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#660099">
-
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/service-worker.js')
-      .then(() => console.log('✅ Service Worker registered'))
-      .catch(err => console.log('❌ Service Worker failed:', err));
-  }
-</script>
-
 <!-- ✅ Styles & Libraries -->
 <link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 </head>
@@ -35,108 +24,49 @@
     </div>
   </header>
 
-  <!-- ✅ Install Banner -->
-  <div id="installContainer" style="
-    display:none;
-    position:fixed;
-    bottom:0;
-    left:0;
-    width:100%;
-    background:white;
-    box-shadow:0 -2px 8px rgba(0,0,0,0.1);
-    padding:16px;
-    text-align:center;
-    z-index:1000;
-  ">
-    <p style="font-weight:500; color:#333; margin:0 0 10px;">
-      📲 Add <strong>EXECOGIM</strong> to your home screen
-    </p>
-    <button id="installBtn" style="
-      background:#5b21b6;
-      color:white;
-      padding:10px 22px;
-      border:none;
-      border-radius:8px;
-      font-weight:600;
-      cursor:pointer;
-    ">Install App</button>
-  </div>
-
-  <!-- Main Content -->
   <main class="container">
-    <!-- Onboarding -->
-    <section id="onboard" class="card onboard-card">
-      <h2>Welcome — Quick Tour</h2>
-      <p>This app creates genotype-informed exercise plans (BDNF Val66Met) and captures pre/post assessments for clinical or research use.</p>
-      <ul>
-        <li>Fill participant details and baseline tests</li>
-        <li>Generate a 12-week, genotype-specific plan</li>
-        <li>Track weekly adherence and export reports</li>
-      </ul>
-      <button id="closeOnboard" class="btn">Close tour</button>
-    </section>
-
     <!-- Participant and Baseline -->
     <section id="planner" class="card">
       <h2>Participant & Assessments</h2>
       <form id="inputForm" class="form-grid">
-        <!-- Participant Info -->
         <div class="col">
-          <label>Participant name 
-            <span class="info" data-tip="Full legal name">ℹ️</span>
-            <input type="text" id="participant_name" placeholder="Full name">
-          </label>
-          <label>Date of birth <input type="date" id="dob"></label>
-          <label>Genotype 
-            <span class="info" data-tip="Val/Val = typical BDNF secretion; Met = lower BDNF release">ℹ️</span>
+          <label>Participant name<input type="text" id="participant_name" placeholder="Full name"></label>
+          <label>Date of birth<input type="date" id="dob"></label>
+          <label>Genotype
             <select id="genotype">
               <option value="Val/Val">Val/Val</option>
               <option value="Met">Met carrier</option>
             </select>
           </label>
-          <label>Age <input type="number" id="age" min="12" max="100" value="65"></label>
-          <label>Fitness level 
+          <label>Fitness level
             <input id="fitness_slider" type="range" min="1" max="5" value="3">
-            <div class="slider-labels"><span>Low</span><span>Moderate</span><span>High</span></div>
-          </label>
-          <label>Constraints 
-            <div class="constraints">
-              <label><input type="checkbox" name="constraint" value="knee"> Knee</label>
-              <label><input type="checkbox" name="constraint" value="shoulder"> Shoulder</label>
-              <label><input type="checkbox" name="constraint" value="hypertension"> Hypertension</label>
-              <label><input type="checkbox" name="constraint" value="balance"> Balance</label>
-            </div>
           </label>
         </div>
 
-        <!-- Pre-assessment -->
         <div class="col">
-          <h4>Pre-assessment — Cognitive</h4>
-          <label>MoCA total<input type="number" id="moca_pre" min="0" max="30"></label>
-          <label>Digit Span forward<input type="number" id="digitf_pre" min="0"></label>
-          <label>Digit Span backward<input type="number" id="digitb_pre" min="0"></label>
-          <label>TMT A (s)<input type="number" id="tmt_a_pre" min="0"></label>
-          <label>TMT B (s)<input type="number" id="tmt_b_pre" min="0"></label>
-          <h4>Pre-assessment — Physical</h4>
-          <label>6MWT (m)<input type="number" id="sixmwt_pre" min="0"></label>
-          <label>TUG (s)<input type="number" id="tug_pre" min="0"></label>
-          <label>Handgrip (kg)<input type="number" id="grip_pre" min="0"></label>
-          <label>BBS (0-56)<input type="number" id="bbs_pre" min="0" max="56"></label>
+          <h4>Pre-assessment</h4>
+          <label>MoCA<input type="number" id="moca_pre"></label>
+          <label>DigitF<input type="number" id="digitf_pre"></label>
+          <label>DigitB<input type="number" id="digitb_pre"></label>
+          <label>TMT-A(s)<input type="number" id="tmt_a_pre"></label>
+          <label>TMT-B(s)<input type="number" id="tmt_b_pre"></label>
+          <label>6MWT(m)<input type="number" id="sixmwt_pre"></label>
+          <label>TUG(s)<input type="number" id="tug_pre"></label>
+          <label>Grip(kg)<input type="number" id="grip_pre"></label>
+          <label>BBS<input type="number" id="bbs_pre"></label>
         </div>
 
-        <!-- Post-assessment -->
         <div class="col">
-          <h4>Post-assessment — Cognitive</h4>
-          <label>MoCA total<input type="number" id="moca_post" min="0" max="30"></label>
-          <label>Digit Span forward<input type="number" id="digitf_post" min="0"></label>
-          <label>Digit Span backward<input type="number" id="digitb_post" min="0"></label>
-          <label>TMT A (s)<input type="number" id="tmt_a_post" min="0"></label>
-          <label>TMT B (s)<input type="number" id="tmt_b_post" min="0"></label>
-          <h4>Post-assessment — Physical</h4>
-          <label>6MWT (m)<input type="number" id="sixmwt_post" min="0"></label>
-          <label>TUG (s)<input type="number" id="tug_post" min="0"></label>
-          <label>Handgrip (kg)<input type="number" id="grip_post" min="0"></label>
-          <label>BBS (0-56)<input type="number" id="bbs_post" min="0" max="56"></label>
+          <h4>Post-assessment</h4>
+          <label>MoCA<input type="number" id="moca_post"></label>
+          <label>DigitF<input type="number" id="digitf_post"></label>
+          <label>DigitB<input type="number" id="digitb_post"></label>
+          <label>TMT-A(s)<input type="number" id="tmt_a_post"></label>
+          <label>TMT-B(s)<input type="number" id="tmt_b_post"></label>
+          <label>6MWT(m)<input type="number" id="sixmwt_post"></label>
+          <label>TUG(s)<input type="number" id="tug_post"></label>
+          <label>Grip(kg)<input type="number" id="grip_post"></label>
+          <label>BBS<input type="number" id="bbs_post"></label>
         </div>
 
         <div class="form-actions fullwidth">
@@ -145,112 +75,57 @@
           <button type="button" id="downloadCsv" class="btn">Download CSV Log</button>
         </div>
       </form>
-      <div id="result" style="display:planner;">
+
+      <!-- ✅ Generated Results -->
+      <div id="result" style="display:none;">
         <h3 id="result-title"></h3>
         <div id="summary"></div>
         <div id="weeks"></div>
-        <!-- ✅ Cognitive–Physical and BSG Radar Charts -->
-<div id="chartCard" style="display:none; margin-top:1rem;">
-  <h4>Cognitive & Physical Performance Summary</h4>
-  <canvas id="radarChart" width="400" height="350"></canvas>
-</div>
 
-<!-- ✅ NEW BSG Adherence Radar Chart -->
-<div id="bsgCard" style="margin-top:1rem; display:block;">
-  <h4>BSG Adherence Summary</h4>
-  <canvas id="bsgChart" width="300" height="220"></canvas>
-</div>
+        <!-- ✅ Cognitive & Physical Radar -->
+        <div id="chartCard" style="display:none; margin-top:1rem;">
+          <h4>Cognitive & Physical Performance Summary</h4>
+          <canvas id="radarChart" width="400" height="350"></canvas>
+        </div>
 
+        <!-- ✅ BSG Radar -->
+        <div id="bsgCard" style="margin-top:1rem;">
+          <h4>BSG Adherence Summary</h4>
+          <canvas id="bsgChart" width="300" height="220"></canvas>
+        </div>
       </div>
     </section>
 
     <!-- Progress -->
     <section id="progress" class="card">
-      <h2>Weekly Progress & Adherence</h2>
-      <p>Mark sessions completed each week to track adherence.</p>
-      <div id="weeklyChecks" class="weekly-checks"></div>
-      <div id="adherenceWeekSummary" class="card" style="margin-top:12px;">
-        <h4>Adherence by Week</h4>
-        <div id="adherenceWeeksContainer"></div>
-      </div>
+      <h2>Weekly Adherence</h2>
+      <div id="weeklyChecks"></div>
       <div class="progress-overview">
         <label>Overall adherence</label>
-        <div class="progress-bar">
-          <div id="adherenceBar" class="progress-fill" style="width:0%"></div>
-        </div>
+        <div class="progress-bar"><div id="adherenceBar" class="progress-fill" style="width:0%"></div></div>
         <div id="adherencePct">0%</div>
       </div>
-      <div id="badges" class="badges"></div>
+      <div id="badges"></div>
     </section>
 
-    <!-- Visual Guides -->
-    <section id="visual-guides" class="card">
-      <h2>Visual Guides</h2>
-      <div class="gallery">
-        <figure><img src="exe_cogim_poster.png" alt="EXECOGIM"><figcaption>EXECOGIM</figcaption></figure>
-        <figure><img src="exercise_concepts.png" alt="Concepts"><figcaption>Exercise Concepts</figcaption></figure>
-        <figure><img src="exercise_prescription.png" alt="Prescription"><figcaption>Exercise Prescription</figcaption></figure>
-      </div>
-    </section>
-
-    <!-- About -->
-    <section id="about" class="card">
-      <h2>About & Evidence</h2>
-      <p>This app applies personalized exercise planning based on BDNF Val66Met polymorphism to optimize cognitive and physical benefits. Data are stored locally for participant privacy.</p>
-    </section>
-
-    <!-- Footer -->
     <footer class="footer card">
-      <div class="footer-inner">
-        <div>Assoc. Prof. Dr. Hazwani Ahmad Yusof @ Hanafi<br>IPPT, Universiti Sains Malaysia</div>
-        <div class="small">This app is for research/education. Consult a clinician before starting any exercise program.</div>
-      </div>
+      <div>Assoc. Prof. Dr. Hazwani Ahmad Yusof @ Hanafi<br>IPPT, Universiti Sains Malaysia</div>
     </footer>
   </main>
 
-  <!-- Exercise Modal -->
+  <!-- Modal -->
   <div id="exerciseModal" class="modal" style="display:none;">
     <div class="modal-content">
       <span id="modalClose" class="modal-close">×</span>
-      <h3 id="modalTitle">Exercise</h3>
-      <img id="modalImg" src="" alt="exercise" style="max-width:100%;border-radius:6px">
+      <h3 id="modalTitle"></h3>
+      <img id="modalImg" src="" alt="exercise" style="max-width:100%">
       <p id="modalDesc"></p>
       <p><strong>Sets / Reps:</strong> <span id="modalSets"></span></p>
-      <button id="modalAlt" class="btn ghost">Show Alternative</button>
+      <button id="modalAlt" class="btn ghost">Alternative</button>
     </div>
   </div>
 
-  <!-- Scripts -->
-  <script src="script_v5.js"></script>
-
-  <!-- ✅ Install Banner Logic -->
-  <script>
-    let deferredPrompt;
-    const installContainer = document.getElementById('installContainer');
-    const installBtn = document.getElementById('installBtn');
-
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      installContainer.style.display = 'block';
-    });
-
-    installBtn.addEventListener('click', async () => {
-      installContainer.style.display = 'none';
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') {
-        console.log('✅ EXECOGIM installed');
-      } else {
-        console.log('❌ User dismissed install');
-      }
-      deferredPrompt = null;
-    });
-
-    window.addEventListener('appinstalled', () => {
-      console.log('✅ EXECOGIM already installed');
-      installContainer.style.display = 'none';
-    });
-  </script>
+  <!-- ✅ App Script -->
+  <script src="script_v5_3.js"></script>
 </body>
 </html>
