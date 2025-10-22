@@ -402,27 +402,33 @@ document.addEventListener('DOMContentLoaded', () => {
 // ============================
 
 let deferredPrompt;
-const installContainer = document.getElementById('installContainer');
-const installBtn = document.getElementById('installBtn');
+const installContainer = document.getElementById("installContainer");
+const installBtn = document.getElementById("installBtn");
 
 // Detect when browser says “App can be installed”
-window.addEventListener('beforeinstallprompt', (e) => {
+window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  installContainer.style.display = 'block';
-  console.log('📲 EXECOGIM install prompt available');
+  installContainer.style.display = "block";
+  console.log("📲 EXECOGIM install prompt available");
 });
 
 // Handle click on the Install button
-installBtn.addEventListener('click', async () => {
-  if (!deferredPrompt) return;
-  installContainer.style.display = 'none';
-  deferredPrompt.prompt();
-  const { outcome } = await deferredPrompt.userChoice;
-  console.log(`✅ User ${outcome === 'accepted' ? 'accepted' : 'dismissed'} the install prompt`);
-  deferredPrompt = null;
-});
+if (installBtn) {
+  installBtn.addEventListener("click", async () => {
+    if (!deferredPrompt) return;
+    installContainer.style.display = "none";
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log(
+      `✅ User ${outcome === "accepted" ? "accepted" : "dismissed"} the install prompt`
+    );
+    deferredPrompt = null;
+  });
+}
 
 // Hide the banner when app successfully installed
-window.addEventListener('appinstalled', () => {
-  console.log('✅ E
+window.addEventListener("appinstalled", () => {
+  console.log("✅ EXECOGIM successfully installed");
+  installContainer.style.display = "none";
+});
