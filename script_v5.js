@@ -53,13 +53,22 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // --- Generate Plan Button ---
-  const form = document.getElementById("inputForm");
-  if (form) {
-    form.addEventListener("submit", (e) => {
-      e.preventDefault();
-      generatePlan();
-    });
-  }
+const form = document.getElementById("inputForm");
+const generateBtn = document.getElementById("generateBtn");
+
+// Handle both form submit and button click
+if (form) {
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    generatePlan();
+  });
+}
+if (generateBtn) {
+    generateBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    generatePlan();
+  });
+}
 
   function generatePlan() {
     const participant = document.getElementById("participant_name").value || "Participant";
