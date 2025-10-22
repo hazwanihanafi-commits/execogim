@@ -360,12 +360,61 @@ input:focus, select:focus {
   .card { padding: 12px; }
   .btn { width: 100%; }
 }
-.result-table th, .result-table td {
-  border: 1px solid #ddd;
-  padding: 6px 8px;
+/* ==========================
+   ASSESSMENT SUMMARY TABLE
+   ========================== */
+.result-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(107, 63, 160, 0.05);
+  background: #fff;
+}
+
+.result-table th, 
+.result-table td {
+  border: 1px solid #e8e6f0;
+  padding: 8px 10px;
   text-align: center;
   font-size: 14px;
 }
-.result-table tr:nth-child(even) { background: #f9f7ff; }
-.result-table tr:hover { background: #f3e9ff; }
+
+.result-table th {
+  background: linear-gradient(90deg, #6b3fa0, #8c5cc8);
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.result-table tr:nth-child(even) {
+  background: #faf8ff;
+}
+
+.result-table tr:hover {
+  background: #f3e9ff;
+  transition: background 0.2s ease;
+}
+
+.result-table td.status {
+  font-weight: 600;
+  border-left: 3px solid transparent;
+}
+
+.result-table td.status.improved {
+  color: #0a7f3f;
+  border-left-color: #0a7f3f;
+}
+
+.result-table td.status.worsened {
+  color: #c01a1a;
+  border-left-color: #c01a1a;
+}
+
+.result-table td.status.same {
+  color: #555;
+  border-left-color: #bbb;
+}
+
 
