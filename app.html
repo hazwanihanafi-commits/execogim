@@ -5,90 +5,70 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>EXECOGIM — Clinical Exercise Prescription App</title>
 
-<!-- ✅ Styles & Libraries -->
+<!-- Styles (your style.css) -->
 <link rel="stylesheet" href="style.css">
+
+<!-- Libraries (load BEFORE your script) -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 </head>
 
 <body>
-  <!-- Header -->
-  <header class="banner">
-    <div class="banner-inner">
-      <div class="title">
-        <h1>EXECOGIM</h1>
-        <p class="subtitle">Clinical Exercise Prescription App</p>
-        <p class="subtitle">Universiti Sains Malaysia | IPPT</p>
-      </div>
-    </div>
-  </header>
+  <header><h1>EXECOGIM</h1><p>Clinical Exercise Prescription App — USM | IPPT</p></header>
 
-  <main class="container">
-    <!-- Participant and Baseline -->
+  <main>
     <section id="planner" class="card">
       <h2>Participant & Assessments</h2>
-      <form id="inputForm" class="form-grid">
-        <div class="col">
-          <label>Participant name<input type="text" id="participant_name" placeholder="Full name"></label>
-          <label>Date of birth<input type="date" id="dob"></label>
-          <label>Genotype
-            <select id="genotype">
-              <option value="Val/Val">Val/Val</option>
-              <option value="Met">Met carrier</option>
-            </select>
-          </label>
-          <label>Fitness level
-            <input id="fitness_slider" type="range" min="1" max="5" value="3">
-          </label>
-        </div>
+      <form id="inputForm">
+        <label>Participant name <input id="participant_name" type="text"></label>
+        <label>Genotype
+          <select id="genotype">
+            <option value="Val/Val">Val/Val</option>
+            <option value="Met">Met carrier</option>
+          </select>
+        </label>
+        <label>Fitness level <input id="fitness_slider" type="range" min="1" max="5" value="3"></label>
 
-        <div class="col">
-          <h4>Pre-assessment</h4>
-          <label>MoCA<input type="number" id="moca_pre"></label>
-          <label>DigitF<input type="number" id="digitf_pre"></label>
-          <label>DigitB<input type="number" id="digitb_pre"></label>
-          <label>TMT-A(s)<input type="number" id="tmt_a_pre"></label>
-          <label>TMT-B(s)<input type="number" id="tmt_b_pre"></label>
-          <label>6MWT(m)<input type="number" id="sixmwt_pre"></label>
-          <label>TUG(s)<input type="number" id="tug_pre"></label>
-          <label>Grip(kg)<input type="number" id="grip_pre"></label>
-          <label>BBS<input type="number" id="bbs_pre"></label>
-        </div>
+        <h4>Pre-assessment</h4>
+        <label>MoCA <input id="moca_pre" type="number"></label>
+        <label>DigitF <input id="digitf_pre" type="number"></label>
+        <label>DigitB <input id="digitb_pre" type="number"></label>
+        <label>TMT-A(s) <input id="tmt_a_pre" type="number"></label>
+        <label>TMT-B(s) <input id="tmt_b_pre" type="number"></label>
+        <label>6MWT(m) <input id="sixmwt_pre" type="number"></label>
+        <label>TUG(s) <input id="tug_pre" type="number"></label>
+        <label>Grip(kg) <input id="grip_pre" type="number"></label>
+        <label>BBS <input id="bbs_pre" type="number"></label>
 
-        <div class="col">
-          <h4>Post-assessment</h4>
-          <label>MoCA<input type="number" id="moca_post"></label>
-          <label>DigitF<input type="number" id="digitf_post"></label>
-          <label>DigitB<input type="number" id="digitb_post"></label>
-          <label>TMT-A(s)<input type="number" id="tmt_a_post"></label>
-          <label>TMT-B(s)<input type="number" id="tmt_b_post"></label>
-          <label>6MWT(m)<input type="number" id="sixmwt_post"></label>
-          <label>TUG(s)<input type="number" id="tug_post"></label>
-          <label>Grip(kg)<input type="number" id="grip_post"></label>
-          <label>BBS<input type="number" id="bbs_post"></label>
-        </div>
+        <h4>Post-assessment</h4>
+        <label>MoCA <input id="moca_post" type="number"></label>
+        <label>DigitF <input id="digitf_post" type="number"></label>
+        <label>DigitB <input id="digitb_post" type="number"></label>
+        <label>TMT-A(s) <input id="tmt_a_post" type="number"></label>
+        <label>TMT-B(s) <input id="tmt_b_post" type="number"></label>
+        <label>6MWT(m) <input id="sixmwt_post" type="number"></label>
+        <label>TUG(s) <input id="tug_post" type="number"></label>
+        <label>Grip(kg) <input id="grip_post" type="number"></label>
+        <label>BBS <input id="bbs_post" type="number"></label>
 
-        <div class="form-actions fullwidth">
-          <button type="submit" class="btn">Generate 12-Week Plan</button>
-          <button type="button" id="exportPdf" class="btn">Export Report (PDF)</button>
-          <button type="button" id="downloadCsv" class="btn">Download CSV Log</button>
+        <div>
+          <button type="submit" id="btnGenerate">Generate 12-Week Plan</button>
+          <button type="button" id="exportPdf">Export Report (PDF)</button>
+          <button type="button" id="downloadCsv">Download CSV Log</button>
         </div>
       </form>
 
-      <!-- ✅ Generated Results -->
       <div id="result" style="display:none;">
         <h3 id="result-title"></h3>
         <div id="summary"></div>
         <div id="weeks"></div>
 
-        <!-- ✅ Cognitive & Physical Radar -->
-        <div id="chartCard" style="display:none; margin-top:1rem;">
+        <div id="chartCard" style="display:none;">
           <h4>Cognitive & Physical Performance Summary</h4>
           <canvas id="radarChart" width="400" height="350"></canvas>
         </div>
 
-        <!-- ✅ BSG Radar -->
         <div id="bsgCard" style="margin-top:1rem;">
           <h4>BSG Adherence Summary</h4>
           <canvas id="bsgChart" width="300" height="220"></canvas>
@@ -96,36 +76,23 @@
       </div>
     </section>
 
-    <!-- Progress -->
-    <section id="progress" class="card">
+    <section id="progress">
       <h2>Weekly Adherence</h2>
       <div id="weeklyChecks"></div>
-      <div class="progress-overview">
+      <div>
         <label>Overall adherence</label>
-        <div class="progress-bar"><div id="adherenceBar" class="progress-fill" style="width:0%"></div></div>
+        <div style="width:240px;border:1px solid #ccc;height:14px;">
+          <div id="adherenceBar" style="height:14px;width:0%;background:#6b3fa0"></div>
+        </div>
         <div id="adherencePct">0%</div>
       </div>
       <div id="badges"></div>
     </section>
-
-    <footer class="footer card">
-      <div>Assoc. Prof. Dr. Hazwani Ahmad Yusof @ Hanafi<br>IPPT, Universiti Sains Malaysia</div>
-    </footer>
   </main>
 
-  <!-- Modal -->
-  <div id="exerciseModal" class="modal" style="display:none;">
-    <div class="modal-content">
-      <span id="modalClose" class="modal-close">×</span>
-      <h3 id="modalTitle"></h3>
-      <img id="modalImg" src="" alt="exercise" style="max-width:100%">
-      <p id="modalDesc"></p>
-      <p><strong>Sets / Reps:</strong> <span id="modalSets"></span></p>
-      <button id="modalAlt" class="btn ghost">Alternative</button>
-    </div>
-  </div>
+  <footer>Assoc. Prof. Dr. Hazwani Ahmad Yusof @ Hanafi — IPPT, USM</footer>
 
-  <!-- ✅ App Script -->
+  <!-- Your app script (load last) -->
   <script src="script_v5_3.js"></script>
 </body>
 </html>
