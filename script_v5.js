@@ -131,6 +131,34 @@ if (generateBtn) {
 
   // --- Render Plan ---
   function renderPlan(report) {
+    // --- Weekly Checks ---
+function setupWeeklyChecks(report) {
+  const container = document.getElementById("weeklyChecks");
+  if (!container) return;
+  container.innerHTML = "";
+  report.weeks.forEach((w) => {
+    const card = document.createElement("div");
+    card.className = "week-card";
+    const title = document.createElement("h4");
+    title.textContent = `Week ${w.week}`;
+    card.appendChild(title);
+    const list = document.createElement("div");
+    w.sessions.forEach((s) => {
+      const btn = document.createElement("button");
+      btn.textContent = s.day;
+      btn.className = "day-btn";
+      btn.onclick = () => {
+        s.done = !s.done;
+        btn.classList.toggle("done");
+        updateAdherence();
+      };
+      list.appendChild(btn);
+    });
+    card.appendChild(list);
+    container.appendChild(card);
+  });
+}
+
     document.getElementById("result-title").textContent = `${report.participant} — ${report.genotype}`;
     document.getElementById("summary").innerHTML =
       `<p><strong>Sessions/week:</strong> ${report.template.sessions_per_week} • 
