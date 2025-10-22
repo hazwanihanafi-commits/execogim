@@ -417,4 +417,17 @@ input:focus, select:focus {
   border-left-color: #bbb;
 }
 
+.day-btn.done {
+  background: linear-gradient(90deg, #6b3fa0, #f26b00);
+  color: white;
+  border-color: transparent;
+  position: relative;
+}
+.day-btn.done::after {
+  content: "✔";
+  position: absolute;
+  right: 10px;
+  top: 4px;
+  font-weight: bold;
+}
 
