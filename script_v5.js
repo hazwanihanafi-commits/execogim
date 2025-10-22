@@ -19,18 +19,18 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // --- Normative references ---
-  const norms = {
-    moca: "Normal: ≥26/30 (Mild impairment <26)",
-    digitf: "Normal: 6–9 digits forward span.",
-    digitb: "Normal: 4–8 digits backward span.",
-    tmt_a: "Norm: <40 sec (lower is better). >78 sec = impaired.",
-    tmt_b: "Norm: <90 sec (lower is better). >273 sec = impaired.",
-    sixmwt: "Norm: 400–700 m (varies by age & sex).",
-    tug: "Norm: <10 sec (independent mobility). >13.5 sec = fall risk.",
-    grip: "Norm: ≥30 kg (men), ≥20 kg (women).",
-    bbs: "Norm: 50–56 = normal balance, <45 = increased fall risk."
-  };
+ // --- Normative references (General Adults) ---
+const norms = {
+  moca: "Normal: ≥26/30. Mild impairment: 18–25. Severe: <18. Lower scores indicate cognitive decline.",
+  digitf: "Normal: 6–9 digits forward span. <6 indicates reduced attention or short-term memory.",
+  digitb: "Normal: 4–8 digits backward span. <4 suggests weak working memory or executive function deficits.",
+  tmt_a: "Normal: <40 sec (lower is better). 40–78 sec = borderline. >78 sec = impaired attention or processing speed.",
+  tmt_b: "Normal: <90 sec (lower is better). 90–273 sec = borderline. >273 sec = poor cognitive flexibility or executive dysfunction.",
+  sixmwt: "Normal: 400–700 m (varies by age & sex). <400 m = reduced aerobic capacity or functional limitation.",
+  tug: "Normal: <10 sec (independent mobility). 10–13.5 sec = borderline. >13.5 sec = risk of falls or mobility impairment.",
+  grip: "Normal: ≥30 kg (men), ≥20 kg (women). <26 kg (men) or <16 kg (women) = weak grip strength (sarcopenia risk).",
+  bbs: "Normal: 50–56 = safe balance. 41–49 = low fall risk. <40 = high fall risk or poor postural control."
+};
 
   // --- Info Modal ---
   const modalBackdrop = document.getElementById("modalBackdrop");
