@@ -283,16 +283,17 @@ document.querySelectorAll(".info-btn").forEach((btn) => {
     doc.autoTable({ startY: y, head: planHeaders, body: planRows, styles: { fontSize: 9 } });
     y = doc.lastAutoTable.finalY + 20;
 
-    // --- Adherence (for PDF export) ---
-const pdfTotal = r.weeks.reduce((sum, w) => sum + w.sessions.length, 0);
-const pdfDone = r.weeks.reduce((sum, w) => sum + w.sessions.filter(s => s.done).length, 0);
-const pdfPct = pdfTotal ? Math.round((pdfDone / pdfTotal) * 100) : 0;
+        // --- Adherence (for PDF export) ---
+    const pdfTotal = r.weeks.reduce((sum, w) => sum + w.sessions.length, 0);
+    const pdfDone = r.weeks.reduce((sum, w) => sum + w.sessions.filter(s => s.done).length, 0);
+    const pdfPct = pdfTotal ? Math.round((pdfDone / pdfTotal) * 100) : 0;
 
-doc.setFontSize(11);
-doc.text(`Overall adherence: ${pdfDone}/${pdfTotal} sessions completed (${pdfPct}%)`, margin, y);
+    doc.setFontSize(11);
+    doc.text(`Overall adherence: ${pdfDone}/${pdfTotal} sessions completed (${pdfPct}%)`, margin, y);
 
-// ✅ Save the PDF
-doc.save(`${r.participant.replace(/\s+/g, "_")}_report.pdf`);
+    // ✅ Save the PDF
+    doc.save(`${r.participant.replace(/\s+/g, "_")}_report.pdf`);
+  }); // ✅ close the PDF export function properly here
 
 
   // --- PWA Install Banner ---
