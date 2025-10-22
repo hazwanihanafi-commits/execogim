@@ -393,13 +393,36 @@ document.addEventListener('DOMContentLoaded', () => {
     doc.save(filename);
   });
 
-  // Restore lastReport on load (optional)
-  try {
-    const last = JSON.parse(localStorage.getItem('lastReport') || 'null');
-    if (last) { window.currentReport = last; renderPlan(last); setupWeeklyChecks(last); resultDiv.style.display = 'block'; }
-  } catch (e) {}
-
   // Onboard close button (if exists)
   const closeOnboard = document.getElementById('closeOnboard');
   if (closeOnboard) closeOnboard.onclick = () => closeOnboard.closest('.card').style.display = 'none';
 });
+// ============================
+// 📲 EXECOGIM PWA INSTALL LOGIC
+// ============================
+
+let deferredPrompt;
+const installContainer = document.getElementById('installContainer');
+const installBtn = document.getElementById('installBtn');
+
+// Detect when browser says “App can be installed”
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  installContainer.style.display = 'block';
+  console.log('📲 EXECOGIM install prompt available');
+});
+
+// Handle click on the Install button
+installBtn.addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  installContainer.style.display = 'none';
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  console.log(`✅ User ${outcome === 'accepted' ? 'accepted' : 'dismissed'} the install prompt`);
+  deferredPrompt = null;
+});
+
+// Hide the banner when app successfully installed
+window.addEventListener('appinstalled', () => {
+  console.log('✅ E
