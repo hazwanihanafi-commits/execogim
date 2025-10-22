@@ -33,64 +33,56 @@
 </head>
 
 <body>
-  <!-- Header -->
   <header class="banner">
-    <div class="banner-inner">
-      <h1>EXECOGIM</h1>
-      <p class="subtitle">Clinical Exercise Prescription App</p>
-      <p class="subtitle">Universiti Sains Malaysia | IPPT</p>
-    </div>
+    <h1>EXECOGIM</h1>
+    <p class="subtitle">Clinical Exercise Prescription App</p>
+    <p class="subtitle">Universiti Sains Malaysia | IPPT</p>
   </header>
 
   <main class="container">
-    <!-- Planner -->
-    <section id="planner" class="card">
+    <section class="card">
       <h2>Participant & Assessments</h2>
       <form id="inputForm" class="form-grid">
-        <div class="col">
+        <div>
           <label>Participant name <input id="participant_name" type="text" placeholder="Full name"></label>
           <label>Date of birth <input id="dob" type="date"></label>
-          <label>Genotype 
-            <select id="genotype">
-              <option value="Val/Val">Val/Val</option>
-              <option value="Met">Met carrier</option>
-            </select>
-          </label>
+          <label>Genotype <select id="genotype"><option>Val/Val</option><option>Met</option></select></label>
+          <label>Age <input id="age" type="number" value="65"></label>
           <label>Fitness level <input id="fitness_slider" type="range" min="1" max="5" value="3"></label>
         </div>
-
-        <div class="col">
+        <div>
           <h4>Pre-assessment</h4>
           <label>MoCA <input id="moca_pre" type="number"></label>
           <label>DigitF <input id="digitf_pre" type="number"></label>
           <label>DigitB <input id="digitb_pre" type="number"></label>
-          <label>TMT-A(s) <input id="tmt_a_pre" type="number"></label>
-          <label>TMT-B(s) <input id="tmt_b_pre" type="number"></label>
-          <label>6MWT(m) <input id="sixmwt_pre" type="number"></label>
-          <label>TUG(s) <input id="tug_pre" type="number"></label>
-          <label>Grip(kg) <input id="grip_pre" type="number"></label>
+          <label>TMT-A <input id="tmt_a_pre" type="number"></label>
+          <label>TMT-B <input id="tmt_b_pre" type="number"></label>
+          <label>6MWT <input id="sixmwt_pre" type="number"></label>
+          <label>TUG <input id="tug_pre" type="number"></label>
+          <label>Grip <input id="grip_pre" type="number"></label>
           <label>BBS <input id="bbs_pre" type="number"></label>
         </div>
-
-        <div class="col">
+        <div>
           <h4>Post-assessment</h4>
           <label>MoCA <input id="moca_post" type="number"></label>
           <label>DigitF <input id="digitf_post" type="number"></label>
           <label>DigitB <input id="digitb_post" type="number"></label>
-          <label>TMT-A(s) <input id="tmt_a_post" type="number"></label>
-          <label>TMT-B(s) <input id="tmt_b_post" type="number"></label>
-          <label>6MWT(m) <input id="sixmwt_post" type="number"></label>
-          <label>TUG(s) <input id="tug_post" type="number"></label>
-          <label>Grip(kg) <input id="grip_post" type="number"></label>
+          <label>TMT-A <input id="tmt_a_post" type="number"></label>
+          <label>TMT-B <input id="tmt_b_post" type="number"></label>
+          <label>6MWT <input id="sixmwt_post" type="number"></label>
+          <label>TUG <input id="tug_post" type="number"></label>
+          <label>Grip <input id="grip_post" type="number"></label>
           <label>BBS <input id="bbs_post" type="number"></label>
         </div>
-
-        <div class="form-actions fullwidth" style="grid-column:1/-1;">
+        <div style="grid-column:1/-1;display:flex;gap:12px;align-items:center;">
           <button type="submit" class="btn">Generate 12-Week Plan</button>
-          <button type="button" id="exportPdf" class="btn">Export Report (PDF)</button>
+          <button id="exportPdf" type="button" class="btn">Export Report (PDF)</button>
         </div>
       </form>
+    </section>
 
+    <section class="card">
+      <h2>12-Week Exercise Plan</h2>
       <div id="result" style="display:none;">
         <h3 id="result-title"></h3>
         <div id="summary"></div>
@@ -98,30 +90,38 @@
       </div>
     </section>
 
-    <!-- Progress -->
-    <section id="progress" class="card">
-      <h2>Weekly Adherence</h2>
-      <p>Mark completed sessions each week to track adherence.</p>
-      <div id="weeklyChecks"></div>
-      <div>
-        <label>Overall adherence</label>
-        <div class="progress-bar"><div id="adherenceBar" class="progress-fill"></div></div>
-        <div id="adherencePct">0%</div>
-      </div>
-      <div id="badges"></div>
+    <section class="card">
+      <h2>Weekly Progress & Adherence</h2>
+      <div id="weeklyChecks" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;"></div>
+      <p style="margin-top:12px;">Overall adherence</p>
+      <div class="progress-bar"><div id="adherenceBar" class="progress-fill"></div></div>
+      <div id="adherencePct">0%</div>
     </section>
 
-    <!-- Hidden canvases for PDF charts -->
-    <div id="pdfCharts">
-      <canvas id="radarChart" width="400" height="350"></canvas>
-      <canvas id="bsgChart" width="300" height="220"></canvas>
-    </div>
+    <section class="card">
+      <h2>Reference & Visuals</h2>
+      <table style="width:100%;border-collapse:collapse;">
+        <tr><th>Reference</th><th>Notes</th></tr>
+        <tr><td>Yusof et al., 2024</td><td>BDNF genotype-based exercise modulation</td></tr>
+        <tr><td>Smith et al., 2022</td><td>Cognitive outcomes of aerobic intervention</td></tr>
+      </table>
+      <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:10px;">
+        <img src="exe_cogim_poster.png" width="200">
+        <img src="exercise_concepts.png" width="200">
+        <img src="exercise_prescription.png" width="200">
+      </div>
+    </section>
   </main>
 
   <footer class="footer">
     <p>Assoc. Prof. Dr. Hazwani Ahmad Yusof @ Hanafi — IPPT, Universiti Sains Malaysia</p>
-    <p>This tool is for research and education. Consult a clinician before starting any exercise program.</p>
   </footer>
+
+  <!-- Hidden canvases for PDF -->
+  <div id="pdfCharts">
+    <canvas id="radarChart" width="600" height="450"></canvas>
+    <canvas id="bsgChart" width="400" height="300"></canvas>
+  </div>
 
   <script src="script_v5.js"></script>
 </body>
