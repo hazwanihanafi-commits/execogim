@@ -38,14 +38,22 @@ const norms = {
   const modalBody = document.getElementById("modalBody");
   const modalClose = document.getElementById("modalClose");
 
-  document.querySelectorAll(".info-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const key = btn.dataset.key;
-      modalTitle.textContent = key.toUpperCase();
-      modalBody.textContent = norms[key] || "Reference data not available.";
-      modalBackdrop.style.display = "flex";
-    });
-  });
+  // --- Touch / Hover Info Button ---
+document.querySelectorAll(".info-btn").forEach((btn) => {
+  const showInfo = () => {
+    const key = btn.dataset.key;
+    modalTitle.textContent = key.toUpperCase();
+    modalBody.textContent = norms[key] || "Reference data not available.";
+    modalBackdrop.style.display = "flex";
+  };
+
+  // Support both hover (desktop) and touchstart (mobile)
+  btn.addEventListener("mouseenter", showInfo);  // for desktop hover
+  btn.addEventListener("touchstart", (e) => {
+    e.preventDefault(); // prevent click conflict
+    showInfo();
+  }, { passive: true });
+});
 
   modalClose.addEventListener("click", () => (modalBackdrop.style.display = "none"));
   modalBackdrop.addEventListener("click", (e) => {
@@ -150,28 +158,33 @@ const norms = {
 
   // --- Render Plan ---
   function renderPlan(report) {
-    document.getElementById("result-title").textContent = `${report.participant} — ${report.genotype}`;
-    document.getElementById("summary").innerHTML = `
-      <p><strong>Sessions/week:</strong> ${report.template.sessions_per_week} • 
-      <strong>Session length:</strong> ${report.template.session_length} min • 
-      <strong>Intensity:</strong> ${report.template.intensity}</p>
-      <p class="instruction">🧠 <strong>Note:</strong> The plan below is automatically tailored to your genotype, fitness, and constraints.</p>`;
-    
-    weeksDiv.innerHTML = "";
-    report.weeks.forEach((w) => {
-      const div = document.createElement("div");
-      div.className = "week-card";
-      div.innerHTML = `<strong>Week ${w.week}</strong><br>`;
-      w.sessions.forEach((s) => {
-        const btn = document.createElement("button");
-        btn.textContent = `${s.day}: ${s.type} — ${s.duration_min} min (${s.cognitive})`;
-        btn.className = "day-btn";
-        btn.onclick = () => { s.done = !s.done; btn.classList.toggle("done"); updateAdherence(); };
-        div.appendChild(btn);
-      });
-      weeksDiv.appendChild(div);
+  document.getElementById("result-title").textContent = `${report.participant} — ${report.genotype}`;
+  document.getElementById("summary").innerHTML = `
+    <p><strong>Sessions/week:</strong> ${report.template.sessions_per_week} • 
+    <strong>Session length:</strong> ${report.template.session_length} min • 
+    <strong>Intensity:</strong> ${report.template.intensity}</p>
+    <p class="instruction">🧠 <strong>Instruction:</strong> Tap each exercise after completing it to mark as done ✔️</p>`;
+
+  weeksDiv.innerHTML = "";
+  report.weeks.forEach((w) => {
+    const div = document.createElement("div");
+    div.className = "week-card";
+    div.innerHTML = `<strong>Week ${w.week}</strong><br>`;
+    w.sessions.forEach((s) => {
+      const btn = document.createElement("button");
+      btn.textContent = `${s.day}: ${s.type} — ${s.duration_min} min (${s.cognitive})`;
+      btn.className = "day-btn";
+      if (s.done) btn.classList.add("done");
+      btn.onclick = () => {
+        s.done = !s.done;
+        btn.classList.toggle("done");
+        updateAdherence(); // updates summary instantly
+      };
+      div.appendChild(btn);
     });
-  }
+    weeksDiv.appendChild(div);
+  });
+}
 
   // --- Weekly checks for adherence ---
   function setupWeeklyChecks(report) {
@@ -275,7 +288,12 @@ const norms = {
     r.weeks.forEach(w => w.sessions.forEach(s => { total++; if (s.done) done++; }));
     const adherencePct = total ? Math.round((done / total) * 100) : 0;
     doc.setFontSize(11);
-    doc.text(`Overall Adherence: ${adherencePct}%`, margin, y);
+    const total = r.weeks.reduce((sum, w) => sum + w.sessions.length, 0);
+const done = r.weeks.reduce((sum, w) => sum + w.sessions.filter(s => s.done).length, 0);
+const pct = total ? Math.round((done / total) * 100) : 0;
+doc.setFontSize(11);
+doc.text(`Overall adherence: ${done}/${total} sessions completed (${pct}%)`, margin, y);
+
     doc.save(`${r.participant.replace(/\s+/g, "_")}_report.pdf`);
   });
 
