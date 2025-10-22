@@ -197,7 +197,7 @@ function renderPlan(report) {
 
     weeksDiv.appendChild(div);
   });
-
+}
   // --- Weekly checks for adherence ---
 function setupWeeklyChecks(report) {
   const container = document.getElementById("weeklyChecks");
@@ -326,13 +326,25 @@ function updateAdherence() {
     y += 340;
 
     // --- Exercise Plan ---
-    const planHeaders = [["Week", "Day", "Type", "Duration (min)", "Cognitive Focus"]];
-    const planRows = [];
-    r.weeks.forEach(w => w.sessions.forEach(s =>
-      planRows.push([`Week ${w.week}`, s.day, s.type, s.duration_min, s.cognitive])
-    ));
-    doc.autoTable({ startY: y, head: planHeaders, body: planRows, styles: { fontSize: 9 } });
-    y = doc.lastAutoTable.finalY + 20;
+const planHeaders = [["Week", "Day", "Type", "Duration (min)", "Cognitive Focus"]];
+const planRows = [];
+
+// ✅ Skip Rest sessions in the PDF for clarity
+r.weeks.forEach(w => {
+  w.sessions.forEach(s => {
+    if (s.type !== "Rest") {
+      planRows.push([`Week ${w.week}`, s.day, s.type, s.duration_min, s.cognitive]);
+    }
+  });
+});
+
+doc.autoTable({
+  startY: y,
+  head: planHeaders,
+  body: planRows,
+  styles: { fontSize: 9 }
+});
+y = doc.lastAutoTable.finalY + 20;
 
         // --- Adherence (for PDF export) ---
     const pdfTotal = r.weeks.reduce((sum, w) => sum + w.sessions.length, 0);
