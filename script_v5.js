@@ -1,5 +1,5 @@
 // =============================================
-// EXECOGIM v8.1 — Clinical Exercise Prescription App
+// EXECOGIM v8.3 — Clinical Exercise Prescription App
 // =============================================
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -8,11 +8,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const adherenceBar = document.getElementById("adherenceBar");
   const adherencePct = document.getElementById("adherencePct");
 
-  const modalBackdrop = document.getElementById("modalBackdrop");
-  const modalTitle = document.getElementById("modalTitle");
-  const modalBody = document.getElementById("modalBody");
-  const modalClose = document.getElementById("modalClose");
-
   // --- Onboarding Close Button ---
   const onboardCard = document.querySelector(".card");
   const closeOnboard = document.getElementById("closeOnboard");
@@ -20,13 +15,11 @@ document.addEventListener("DOMContentLoaded", () => {
     closeOnboard.addEventListener("click", () => {
       onboardCard.style.transition = "opacity 0.4s ease";
       onboardCard.style.opacity = "0";
-      setTimeout(() => {
-        onboardCard.style.display = "none";
-      }, 400);
+      setTimeout(() => onboardCard.style.display = "none", 400);
     });
   }
 
-  // Normative references (general adults)
+  // --- Normative references ---
   const norms = {
     moca: "Normal: ≥26/30 (Mild impairment <26)",
     digitf: "Normal: 6–9 digits forward span.",
@@ -34,12 +27,17 @@ document.addEventListener("DOMContentLoaded", () => {
     tmt_a: "Norm: <40 sec (lower is better). >78 sec = impaired.",
     tmt_b: "Norm: <90 sec (lower is better). >273 sec = impaired.",
     sixmwt: "Norm: 400–700 m (varies by age & sex).",
-    tug: "Norm: <10 sec (independent mobility). >13.5 sec = risk of fall.",
+    tug: "Norm: <10 sec (independent mobility). >13.5 sec = fall risk.",
     grip: "Norm: ≥30 kg (men), ≥20 kg (women).",
     bbs: "Norm: 50–56 = normal balance, <45 = increased fall risk."
   };
 
-  // Show modal info
+  // --- Show modal info ---
+  const modalBackdrop = document.getElementById("modalBackdrop");
+  const modalTitle = document.getElementById("modalTitle");
+  const modalBody = document.getElementById("modalBody");
+  const modalClose = document.getElementById("modalClose");
+
   document.querySelectorAll(".info-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       const key = btn.dataset.key;
@@ -54,11 +52,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.target === modalBackdrop) modalBackdrop.style.display = "none";
   });
 
-  // Generate 12-week plan
-  document.getElementById("inputForm").addEventListener("submit", (e) => {
-    e.preventDefault();
-    generatePlan();
-  });
+  // --- Generate Plan Button ---
+  const form = document.getElementById("inputForm");
+  if (form) {
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      generatePlan();
+    });
+  }
 
   function generatePlan() {
     const participant = document.getElementById("participant_name").value || "Participant";
@@ -72,6 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
       tug: tug_pre.value, grip: grip_pre.value, bbs: bbs_pre.value
     };
 
+    // --- Genotype-specific template ---
     const template = genotype.toLowerCase().startsWith("val")
       ? { label: "Val/Val", sessions_per_week: 4, session_length: 30, intensity: "moderate-to-vigorous" }
       : { label: "Met carrier", sessions_per_week: 5, session_length: 40, intensity: "light-to-moderate" };
@@ -85,6 +87,7 @@ document.addEventListener("DOMContentLoaded", () => {
       template.session_length = Math.round(template.session_length * 1.1);
     }
 
+    // --- 12-week plan generator ---
     const weeks = [];
     for (let wk = 1; wk <= 12; wk++) {
       const sessions = [];
@@ -117,7 +120,7 @@ document.addEventListener("DOMContentLoaded", () => {
     resultDiv.style.display = "block";
   }
 
-  // Render plan
+  // --- Render Plan ---
   function renderPlan(report) {
     document.getElementById("result-title").textContent = `${report.participant} — ${report.genotype}`;
     document.getElementById("summary").innerHTML =
@@ -140,30 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Weekly checks
-  function setupWeeklyChecks(report) {
-    const container = document.getElementById("weeklyChecks");
-    container.innerHTML = "";
-    report.weeks.forEach((w) => {
-      const card = document.createElement("div");
-      card.className = "week-card";
-      const title = document.createElement("h4");
-      title.textContent = `Week ${w.week}`;
-      card.appendChild(title);
-      const list = document.createElement("div");
-      w.sessions.forEach((s) => {
-        const btn = document.createElement("button");
-        btn.textContent = s.day;
-        btn.className = "day-btn";
-        btn.onclick = () => { s.done = !s.done; btn.classList.toggle("done"); updateAdherence(); };
-        list.appendChild(btn);
-      });
-      card.appendChild(list);
-      container.appendChild(card);
-    });
-  }
-
-  // Adherence logic
+  // --- Adherence Logic ---
   function updateAdherence() {
     const r = window.currentReport;
     if (!r) return;
@@ -174,11 +154,10 @@ document.addEventListener("DOMContentLoaded", () => {
     adherencePct.textContent = pct + "%";
   }
 
-  // Excel Export
+  // --- Excel Export ---
   document.getElementById("downloadXlsx").addEventListener("click", () => {
     const r = window.currentReport;
     if (!r) { alert("Generate a plan first."); return; }
-
     const wb = XLSX.utils.book_new();
     const ws_data = [["Week", "Day", "Type", "Duration (min)", "Cognitive", "Completed"]];
     r.weeks.forEach(w => w.sessions.forEach(s =>
@@ -189,100 +168,15 @@ document.addEventListener("DOMContentLoaded", () => {
     XLSX.writeFile(wb, `${r.participant.replace(/\s+/g, "_")}_plan.xlsx`);
   });
 
-  // --- PDF Export (Radar + Plan Table included only in PDF) ---
-document.getElementById("exportPdf").addEventListener("click", async () => {
-  const r = window.currentReport;
-  if (!r) { alert("Generate a plan first."); return; }
+  // --- PDF Export (Radar + Plan Table) ---
+  document.getElementById("exportPdf").addEventListener("click", async () => {
+    const r = window.currentReport;
+    if (!r) { alert("Generate a plan first."); return; }
 
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ unit: "pt", format: "a4" });
-  const margin = 36;
-  let y = 36;
-
-  // Header
-  doc.setFontSize(14);
-  doc.setTextColor(60, 22, 102);
-  doc.text("Clinical Exercise Prescription Report", margin, y);
-  y += 30;
-  doc.setFontSize(11);
-  doc.text(`Participant: ${r.participant}`, margin, y);
-  doc.text(`Genotype: ${r.genotype}`, margin + 300, y);
-  y += 20;
-  doc.text(`Generated: ${new Date().toLocaleDateString()}`, margin, y);
-  y += 20;
-
-  // Pre/Post table
-  const headers = [["Measure", "Pre", "Post"]];
-  const rows = [];
-  const keys = ["moca", "digitf", "digitb", "tmt_a", "tmt_b", "sixmwt", "tug", "grip", "bbs"];
-  keys.forEach(k => rows.push([
-    k.toUpperCase(),
-    r.pre[k] || "",
-    document.getElementById(k + "_post").value || ""
-  ]));
-
-  doc.autoTable({ startY: y, head: headers, body: rows, styles: { fontSize: 10 } });
-  y = doc.lastAutoTable.finalY + 25;
-
-  // Radar chart (hidden on web, drawn only in PDF)
-  const radarCanvas = document.getElementById("radarChart");
-  const ctx = radarCanvas.getContext("2d");
-  const preVals = keys.map(k => parseFloat(r.pre[k]) || 0);
-  const postVals = keys.map(k => parseFloat(document.getElementById(k + "_post").value) || 0);
-
-  new Chart(ctx, {
-    type: "radar",
-    data: {
-      labels: keys.map(k => k.toUpperCase()),
-      datasets: [
-        { label: "Pre", data: preVals, backgroundColor: "rgba(242,107,0,0.25)", borderColor: "#f26b00" },
-        { label: "Post", data: postVals, backgroundColor: "rgba(107,63,160,0.25)", borderColor: "#6b3fa0" }
-      ]
-    },
-    options: { responsive: false, scales: { r: { beginAtZero: true } } }
-  });
-
-  // Wait for rendering before embedding
-  await new Promise(res => setTimeout(res, 1000));
-  const img = radarCanvas.toDataURL("image/png");
-  doc.addImage(img, "PNG", margin, y, 520, 320);
-  y += 340;
-
-  // Add Exercise Plan (12-week table)
-  const planHeaders = [["Week", "Day", "Type", "Duration (min)", "Cognitive Focus"]];
-  const planRows = [];
-  r.weeks.forEach(w =>
-    w.sessions.forEach(s =>
-      planRows.push([`Week ${w.week}`, s.day, s.type, s.duration_min, s.cognitive || "-"])
-    )
-  );
-
-  // Page break if needed
-  if (y > 700) { doc.addPage(); y = 40; }
-  doc.autoTable({
-    startY: y,
-    head: planHeaders,
-    body: planRows,
-    styles: { fontSize: 9 },
-    columnStyles: { 0: { cellWidth: 60 }, 1: { cellWidth: 50 } },
-    margin: { left: margin }
-  });
-  y = doc.lastAutoTable.finalY + 20;
-
-  // Adherence summary
-  let total = 0, done = 0;
-  r.weeks.forEach(w => w.sessions.forEach(s => { total++; if (s.done) done++; }));
-  const adherencePct = total ? Math.round((done / total) * 100) : 0;
-  if (y > 700) { doc.addPage(); y = 40; }
-  doc.setFontSize(11);
-  doc.text(`Overall Adherence: ${adherencePct}%`, margin, y);
-
-  // Footer
-  doc.setFontSize(9);
-  doc.text("Assoc. Prof. Dr. Hazwani Ahmad Yusof @ Hanafi — IPPT, Universiti Sains Malaysia", margin, 800);
-  doc.save(`${r.participant.replace(/\s+/g, "_")}_report.pdf`);
-});
-
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: "pt", format: "a4" });
+    const margin = 36;
+    let y = 36;
 
     doc.setFontSize(14);
     doc.setTextColor(60, 22, 102);
@@ -297,33 +191,56 @@ document.getElementById("exportPdf").addEventListener("click", async () => {
 
     const headers = [["Measure", "Pre", "Post"]];
     const rows = [];
-    const keys = ["moca", "digitf", "digitb", "tmt_a", "tmt_b", "sixmwt", "tug", "grip", "bbs"];
+    const keys = ["moca","digitf","digitb","tmt_a","tmt_b","sixmwt","tug","grip","bbs"];
     keys.forEach(k => rows.push([k.toUpperCase(), r.pre[k] || "", document.getElementById(k + "_post").value || ""]));
 
     doc.autoTable({ startY: y, head: headers, body: rows, styles: { fontSize: 10 } });
-    y = doc.lastAutoTable.finalY + 20;
+    y = doc.lastAutoTable.finalY + 25;
 
-    // Radar chart
-    const radarCanvas = document.getElementById("radarChart");
+    // Radar Chart (only for PDF)
+    const radarCanvas = document.createElement("canvas");
+    radarCanvas.width = 500;
+    radarCanvas.height = 500;
     const ctx = radarCanvas.getContext("2d");
     const preVals = keys.map(k => parseFloat(r.pre[k]) || 0);
     const postVals = keys.map(k => parseFloat(document.getElementById(k + "_post").value) || 0);
+
     new Chart(ctx, {
       type: "radar",
-      data: { labels: keys.map(k => k.toUpperCase()), datasets: [
-        { label: "Pre", data: preVals, backgroundColor: "rgba(242,107,0,0.25)", borderColor: "#f26b00" },
-        { label: "Post", data: postVals, backgroundColor: "rgba(107,63,160,0.25)", borderColor: "#6b3fa0" }
-      ]},
+      data: {
+        labels: keys.map(k => k.toUpperCase()),
+        datasets: [
+          { label: "Pre", data: preVals, backgroundColor: "rgba(242,107,0,0.25)", borderColor: "#f26b00" },
+          { label: "Post", data: postVals, backgroundColor: "rgba(107,63,160,0.25)", borderColor: "#6b3fa0" }
+        ]
+      },
       options: { responsive: false, scales: { r: { beginAtZero: true } } }
     });
-    await new Promise(res => setTimeout(res, 1200));
+
+    await new Promise(res => setTimeout(res, 800));
     const img = radarCanvas.toDataURL("image/png");
     doc.addImage(img, "PNG", margin, y, 520, 320);
+    y += 340;
+
+    // Exercise Plan
+    const planHeaders = [["Week", "Day", "Type", "Duration (min)", "Cognitive Focus"]];
+    const planRows = [];
+    r.weeks.forEach(w => w.sessions.forEach(s => planRows.push([`Week ${w.week}`, s.day, s.type, s.duration_min, s.cognitive || "-"])));
+    if (y > 700) { doc.addPage(); y = 40; }
+    doc.autoTable({ startY: y, head: planHeaders, body: planRows, styles: { fontSize: 9 } });
+    y = doc.lastAutoTable.finalY + 20;
+
+    // Adherence
+    let total = 0, done = 0;
+    r.weeks.forEach(w => w.sessions.forEach(s => { total++; if (s.done) done++; }));
+    const adherencePct = total ? Math.round((done / total) * 100) : 0;
+    doc.setFontSize(11);
+    doc.text(`Overall Adherence: ${adherencePct}%`, margin, y);
 
     doc.save(`${r.participant.replace(/\s+/g, "_")}_report.pdf`);
   });
 
-  // 📲 EXECOGIM PWA INSTALL LOGIC
+  // --- PWA Install Banner ---
   let deferredPrompt;
   const installContainer = document.getElementById("installContainer");
   const installBtn = document.getElementById("installBtn");
@@ -331,7 +248,7 @@ document.getElementById("exportPdf").addEventListener("click", async () => {
   window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    installContainer.style.display = "block";
+    if (installContainer) installContainer.style.display = "block";
   });
 
   if (installBtn) {
@@ -340,13 +257,13 @@ document.getElementById("exportPdf").addEventListener("click", async () => {
       installContainer.style.display = "none";
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
-      console.log(`✅ User ${outcome === "accepted" ? "accepted" : "dismissed"} the install prompt`);
+      console.log(`📲 User ${outcome}`);
       deferredPrompt = null;
     });
   }
 
   window.addEventListener("appinstalled", () => {
-    console.log("✅ EXECOGIM successfully installed");
-    installContainer.style.display = "none";
+    console.log("✅ EXECOGIM installed");
+    if (installContainer) installContainer.style.display = "none";
   });
 });
