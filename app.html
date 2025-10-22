@@ -5,11 +5,31 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>EXECOGIM — Clinical Exercise Prescription App</title>
 
-<!-- ✅ Core Libraries -->
+<!-- Styles & Libraries -->
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
+<style>
+  body { font-family: 'Segoe UI', sans-serif; background: #fafafa; color: #333; margin:0; }
+  .banner { background: linear-gradient(90deg, #6b3fa0, #f26b00); color:#fff; text-align:center; padding:20px; }
+  .banner h1 { margin:0; font-size:2rem; letter-spacing:1px; }
+  .subtitle { margin:2px 0; font-size:0.95rem; opacity:0.9; }
+  .container { max-width:1100px; margin:0 auto; padding:20px; }
+  .card { background:#fff; padding:20px; border-radius:16px; box-shadow:0 2px 10px rgba(0,0,0,0.05); margin-bottom:20px; }
+  .form-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px; }
+  label { display:block; font-weight:500; margin-bottom:6px; }
+  input, select { width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; margin-top:4px; }
+  h2 { color:#6b3fa0; }
+  h4 { color:#f26b00; margin-bottom:8px; }
+  .btn { background:linear-gradient(90deg,#6b3fa0,#f26b00); border:none; color:white; padding:10px 18px; border-radius:8px; cursor:pointer; font-weight:600; }
+  .btn:hover { opacity:0.9; }
+  .progress-bar { background:#eee; border-radius:12px; height:12px; overflow:hidden; margin-top:6px; }
+  .progress-fill { background:linear-gradient(90deg,#f26b00,#6b3fa0); height:100%; width:0%; transition:width .3s; }
+  .footer { background:#f9f9f9; text-align:center; font-size:0.85rem; padding:20px; color:#666; border-top:2px solid #6b3fa0; border-radius:12px; }
+  #pdfCharts { display:none; }
+</style>
 </head>
 
 <body>
@@ -65,7 +85,7 @@
           <label>BBS <input id="bbs_post" type="number"></label>
         </div>
 
-        <div class="form-actions fullwidth">
+        <div class="form-actions fullwidth" style="grid-column:1/-1;">
           <button type="submit" class="btn">Generate 12-Week Plan</button>
           <button type="button" id="exportPdf" class="btn">Export Report (PDF)</button>
         </div>
@@ -78,35 +98,31 @@
       </div>
     </section>
 
-    <!-- Adherence Tracking -->
+    <!-- Progress -->
     <section id="progress" class="card">
       <h2>Weekly Adherence</h2>
-      <p>Mark completed sessions to track adherence.</p>
+      <p>Mark completed sessions each week to track adherence.</p>
       <div id="weeklyChecks"></div>
       <div>
         <label>Overall adherence</label>
-        <div class="progress-bar">
-          <div id="adherenceBar" class="progress-fill" style="width:0%"></div>
-        </div>
+        <div class="progress-bar"><div id="adherenceBar" class="progress-fill"></div></div>
         <div id="adherencePct">0%</div>
       </div>
       <div id="badges"></div>
     </section>
 
-    <!-- Hidden canvases (for PDF export only) -->
-    <div id="pdfCharts" style="display:none;">
+    <!-- Hidden canvases for PDF charts -->
+    <div id="pdfCharts">
       <canvas id="radarChart" width="400" height="350"></canvas>
       <canvas id="bsgChart" width="300" height="220"></canvas>
     </div>
   </main>
 
-  <footer class="footer card">
-    <div class="footer-inner">
-      <div>Assoc. Prof. Dr. Hazwani Ahmad Yusof @ Hanafi<br>IPPT, Universiti Sains Malaysia</div>
-    </div>
+  <footer class="footer">
+    <p>Assoc. Prof. Dr. Hazwani Ahmad Yusof @ Hanafi — IPPT, Universiti Sains Malaysia</p>
+    <p>This tool is for research and education. Consult a clinician before starting any exercise program.</p>
   </footer>
 
-  <!-- JS -->
   <script src="script_v5_light.js"></script>
 </body>
 </html>
