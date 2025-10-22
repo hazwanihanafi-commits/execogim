@@ -1,7 +1,7 @@
 {
   "name": "EXECOGIM — Clinical Exercise Prescription App",
   "short_name": "EXECOGIM",
-  "description": "Malaysia’s first gene-guided exercise prescription app for cognitive health — powered by USM IPPT.",
+  "description": "Malaysia’s first gene-guided exercise prescription app for cognitive health — powered by USM",
   "start_url": "/index.html",
   "display": "standalone",
   "background_color": "#ffffff",
