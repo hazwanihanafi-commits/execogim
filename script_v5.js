@@ -161,40 +161,99 @@ document.addEventListener('DOMContentLoaded', ()=>{
   });
 
   // PDF export with radar embedded as PNG
-  document.getElementById('exportPdf').addEventListener('click', async ()=>{
-    const r = window.currentReport; if(!r){ alert('Generate a plan first'); return; }
-    const { jsPDF } = window.jspdf; const doc = new jsPDF({unit:'pt', format:'a4'}); const margin=36; let y=36;
-    // header logo
-    try{ const res = await fetch('usm_ippt_logos.png'); const blob = await res.blob(); const reader = new FileReader(); reader.onloadend = ()=>{ const dataUrl = reader.result; doc.addImage(dataUrl,'PNG',margin,y,120,40); proceed(); }; reader.readAsDataURL(blob); }catch(e){ proceed(); }
-    function proceed(){
-      doc.setFontSize(14); doc.setTextColor(60,22,102); doc.text('Clinical Exercise Prescription Report', margin+140, y+16); y+=60;
-      doc.setFontSize(11); doc.text(`Participant: ${r.participant}`, margin, y); doc.text(`Genotype: ${r.genotype}`, margin+300, y); y+=16;
-      doc.text(`DOB: ${document.getElementById('dob').value || ''}`, margin, y); doc.text(`Generated: ${new Date().toLocaleDateString()}`, margin+300, y); y+=20;
-      // pre/post table
-      const pre = r.pre;
-      const post = { moca: document.getElementById('moca_post')?.value||'', digitf: document.getElementById('digitf_post')?.value||'', digitb: document.getElementById('digitb_post')?.value||'', tmt_a: document.getElementById('tmt_a_post')?.value||'', tmt_b: document.getElementById('tmt_b_post')?.value||'', sixmwt: document.getElementById('sixmwt_post')?.value||'', tug: document.getElementById('tug_post')?.value||'', grip: document.getElementById('grip_post')?.value||'', bbs: document.getElementById('bbs_post')?.value||'' };
-      const headers=[['Measure','Pre','Post','Change','Status']]; const rows=[];
-      function statusText(preV, postV, lower=false){ if(preV==='' || postV==='') return 'Incomplete'; const p=parseFloat(preV), q=parseFloat(postV); if(p===q) return 'No change'; if(lower) return (q < p)? 'Improved':'Worsened'; return (q>p)? 'Improved':'Worsened'; }
-      const measures=[['MoCA','moca',false],['DigitF','digitf',false],['DigitB','digitb',false],['TMT_A(s)','tmt_a',true],['TMT_B(s)','tmt_b',true],['6MWT(m)','sixmwt',false],['TUG(s)','tug',true],['Handgrip(kg)','grip',false],['BBS','bbs',false]];
-      for(const m of measures){ const preV=pre[m[1]]||''; const postV=post[m[1]]||''; const change=(preV!==''&&postV!=='')? (parseFloat(postV)-parseFloat(preV)).toFixed(2):''; rows.push([m[0], preV, postV, change, statusText(preV, postV, m[2])]); }
-      doc.autoTable({ startY: y, head: headers, body: rows, styles:{fontSize:10}, headStyles:{fillColor:[107,63,160]} });
-      y = doc.lastAutoTable.finalY + 12;
-      // include radar chart PNG if present
-      const canvas = document.getElementById('radarChart'); if(canvas && document.getElementById('includeChart').checked){
-        try{ const dataUrl = canvas.toDataURL('image/png',1.0); const imgW=420; const imgH = imgW * (canvas.height/canvas.width); if(y + imgH > 780){ doc.addPage(); y=40; } doc.addImage(dataUrl,'PNG',margin,y,imgW,imgH); y+=imgH+12; }catch(e){} 
-      }
-      // plan snapshot
-      const planRows = []; for(const w of r.weeks){ planRows.push([`Week ${w.week}`, w.sessions.map(s=>`${s.day}:${s.type}(${s.duration_min}m)`).join(' | ')]); }
-      doc.autoTable({ startY: y, head:[['Week','Sessions']], body: planRows.slice(0,6), styles:{fontSize:9} });
-      if(planRows.length>6){ if(doc.lastAutoTable.finalY + 20 > 780){ doc.addPage(); y=40; } else { y = doc.lastAutoTable.finalY + 20; } doc.autoTable({ startY: y, head:[['Week','Sessions']], body: planRows.slice(6), styles:{fontSize:9} }); }
-      // weekly adherence summary + consent
-      let total=0, done=0; r.weeks.forEach(w=> w.sessions.forEach(s=>{ total++; if(s.done) done++; }));
-      doc.addPage(); doc.setFontSize(12); doc.text('Weekly Adherence Summary', margin, 60); doc.setFontSize(10); doc.text(`Total sessions: ${total} — Completed: ${done} — Adherence: ${Math.round(total?done/total*100:0)}%`, margin, 80);
-      doc.addPage(); doc.setFontSize(12); doc.text('Consent Form', margin, 60); doc.setFontSize(10); doc.text('I confirm that I have received information about the exercise program. I understand the risks and benefits and consent to participate. I confirm that I have disclosed any medical conditions to the clinician.', margin, 80, {maxWidth:520});
-      doc.setFontSize(9); doc.text('Assoc. Prof. Dr. Hazwani Ahmad Yusof @ Hanafi', margin, 760); doc.text('IPPT, Universiti Sains Malaysia', margin, 774);
-      doc.save(`${(r.participant||'participant').replace(/\s+/g,'_')}_execogim_report.pdf`);
+  // PDF export with radar chart fix
+document.getElementById('exportPdf').addEventListener('click', async () => {
+  const r = window.currentReport; 
+  if (!r) { alert('Generate a plan first'); return; }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+  const margin = 36;
+  let y = 36;
+
+  // ✅ Wait for radar chart to fully render
+  await new Promise(resolve => setTimeout(resolve, 1200));
+
+  // header logo
+  try {
+    const res = await fetch('usm_ippt_logos.png');
+    const blob = await res.blob();
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const dataUrl = reader.result;
+      doc.addImage(dataUrl, 'PNG', margin, y, 120, 40);
+      proceed();
+    };
+    reader.readAsDataURL(blob);
+  } catch (e) {
+    proceed();
+  }
+
+  async function proceed() {
+    doc.setFontSize(14);
+    doc.setTextColor(60, 22, 102);
+    doc.text('Clinical Exercise Prescription Report', margin + 140, y + 16);
+    y += 60;
+
+    doc.setFontSize(11);
+    doc.text(`Participant: ${r.participant}`, margin, y);
+    doc.text(`Genotype: ${r.genotype}`, margin + 300, y);
+    y += 16;
+    doc.text(`DOB: ${document.getElementById('dob').value || ''}`, margin, y);
+    doc.text(`Generated: ${new Date().toLocaleDateString()}`, margin + 300, y);
+    y += 20;
+
+    // pre/post table (same as your original)
+    const pre = r.pre;
+    const post = {
+      moca: document.getElementById('moca_post')?.value || '',
+      digitf: document.getElementById('digitf_post')?.value || '',
+      digitb: document.getElementById('digitb_post')?.value || '',
+      tmt_a: document.getElementById('tmt_a_post')?.value || '',
+      tmt_b: document.getElementById('tmt_b_post')?.value || '',
+      sixmwt: document.getElementById('sixmwt_post')?.value || '',
+      tug: document.getElementById('tug_post')?.value || '',
+      grip: document.getElementById('grip_post')?.value || '',
+      bbs: document.getElementById('bbs_post')?.value || ''
+    };
+
+    const headers = [['Measure', 'Pre', 'Post', 'Change', 'Status']];
+    const rows = [];
+    function statusText(preV, postV, lower = false) {
+      if (preV === '' || postV === '') return 'Incomplete';
+      const p = parseFloat(preV), q = parseFloat(postV);
+      if (p === q) return 'No change';
+      if (lower) return (q < p) ? 'Improved' : 'Worsened';
+      return (q > p) ? 'Improved' : 'Worsened';
     }
-  });
+    const measures = [
+      ['MoCA', 'moca', false],
+      ['DigitF', 'digitf', false],
+      ['DigitB', 'digitb', false],
+      ['TMT_A(s)', 'tmt_a', true],
+      ['TMT_B(s)', 'tmt_b', true],
+      ['6MWT(m)', 'sixmwt', false],
+      ['TUG(s)', 'tug', true],
+      ['Handgrip(kg)', 'grip', false],
+      ['BBS', 'bbs', false]
+    ];
+    for (const m of measures) {
+      const preV = pre[m[1]] || '';
+      const postV = post[m[1]] || '';
+      const change = (preV !== '' && postV !== '') ? (parseFloat(postV) - parseFloat(preV)).toFixed(2) : '';
+      rows.push([m[0], preV, postV, change, statusText(preV, postV, m[2])]);
+    }
+    doc.autoTable({ startY: y, head: headers, body: rows, styles: { fontSize: 10 }, headStyles: { fillColor: [107, 63, 160] } });
+    y = doc.lastAutoTable.finalY + 12;
+
+    // ✅ Ensure radar chart is always included (even if includeChart checkbox missing)
+    const canvas = document.getElementById('radarChart');
+    if (canvas) {
+      try {
+        const dataUrl = canvas.toDataURL('image/png', 1.0);
+        const imgW = 420;
+        const imgH = imgW * (canvas.height / canvas.width);
+        if (y + imgH > 780) { doc.addPage(); y = 40; }
   
   // On page load, restore lastReport if present
   try{
