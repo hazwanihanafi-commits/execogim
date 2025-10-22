@@ -5,57 +5,69 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>EXECOGIM — Clinical Exercise Prescription App</title>
 
-<!-- Styles (your style.css) -->
+<!-- ✅ Core Libraries -->
 <link rel="stylesheet" href="style.css">
-
-<!-- Libraries (load BEFORE your script) -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 </head>
 
 <body>
-  <header><h1>EXECOGIM</h1><p>Clinical Exercise Prescription App — USM | IPPT</p></header>
+  <!-- Header -->
+  <header class="banner">
+    <div class="banner-inner">
+      <h1>EXECOGIM</h1>
+      <p class="subtitle">Clinical Exercise Prescription App</p>
+      <p class="subtitle">Universiti Sains Malaysia | IPPT</p>
+    </div>
+  </header>
 
-  <main>
+  <main class="container">
+    <!-- Planner -->
     <section id="planner" class="card">
       <h2>Participant & Assessments</h2>
-      <form id="inputForm">
-        <label>Participant name <input id="participant_name" type="text"></label>
-        <label>Genotype
-          <select id="genotype">
-            <option value="Val/Val">Val/Val</option>
-            <option value="Met">Met carrier</option>
-          </select>
-        </label>
-        <label>Fitness level <input id="fitness_slider" type="range" min="1" max="5" value="3"></label>
+      <form id="inputForm" class="form-grid">
+        <div class="col">
+          <label>Participant name <input id="participant_name" type="text" placeholder="Full name"></label>
+          <label>Date of birth <input id="dob" type="date"></label>
+          <label>Genotype 
+            <select id="genotype">
+              <option value="Val/Val">Val/Val</option>
+              <option value="Met">Met carrier</option>
+            </select>
+          </label>
+          <label>Fitness level <input id="fitness_slider" type="range" min="1" max="5" value="3"></label>
+        </div>
 
-        <h4>Pre-assessment</h4>
-        <label>MoCA <input id="moca_pre" type="number"></label>
-        <label>DigitF <input id="digitf_pre" type="number"></label>
-        <label>DigitB <input id="digitb_pre" type="number"></label>
-        <label>TMT-A(s) <input id="tmt_a_pre" type="number"></label>
-        <label>TMT-B(s) <input id="tmt_b_pre" type="number"></label>
-        <label>6MWT(m) <input id="sixmwt_pre" type="number"></label>
-        <label>TUG(s) <input id="tug_pre" type="number"></label>
-        <label>Grip(kg) <input id="grip_pre" type="number"></label>
-        <label>BBS <input id="bbs_pre" type="number"></label>
+        <div class="col">
+          <h4>Pre-assessment</h4>
+          <label>MoCA <input id="moca_pre" type="number"></label>
+          <label>DigitF <input id="digitf_pre" type="number"></label>
+          <label>DigitB <input id="digitb_pre" type="number"></label>
+          <label>TMT-A(s) <input id="tmt_a_pre" type="number"></label>
+          <label>TMT-B(s) <input id="tmt_b_pre" type="number"></label>
+          <label>6MWT(m) <input id="sixmwt_pre" type="number"></label>
+          <label>TUG(s) <input id="tug_pre" type="number"></label>
+          <label>Grip(kg) <input id="grip_pre" type="number"></label>
+          <label>BBS <input id="bbs_pre" type="number"></label>
+        </div>
 
-        <h4>Post-assessment</h4>
-        <label>MoCA <input id="moca_post" type="number"></label>
-        <label>DigitF <input id="digitf_post" type="number"></label>
-        <label>DigitB <input id="digitb_post" type="number"></label>
-        <label>TMT-A(s) <input id="tmt_a_post" type="number"></label>
-        <label>TMT-B(s) <input id="tmt_b_post" type="number"></label>
-        <label>6MWT(m) <input id="sixmwt_post" type="number"></label>
-        <label>TUG(s) <input id="tug_post" type="number"></label>
-        <label>Grip(kg) <input id="grip_post" type="number"></label>
-        <label>BBS <input id="bbs_post" type="number"></label>
+        <div class="col">
+          <h4>Post-assessment</h4>
+          <label>MoCA <input id="moca_post" type="number"></label>
+          <label>DigitF <input id="digitf_post" type="number"></label>
+          <label>DigitB <input id="digitb_post" type="number"></label>
+          <label>TMT-A(s) <input id="tmt_a_post" type="number"></label>
+          <label>TMT-B(s) <input id="tmt_b_post" type="number"></label>
+          <label>6MWT(m) <input id="sixmwt_post" type="number"></label>
+          <label>TUG(s) <input id="tug_post" type="number"></label>
+          <label>Grip(kg) <input id="grip_post" type="number"></label>
+          <label>BBS <input id="bbs_post" type="number"></label>
+        </div>
 
-        <div>
-          <button type="submit" id="btnGenerate">Generate 12-Week Plan</button>
-          <button type="button" id="exportPdf">Export Report (PDF)</button>
-          <button type="button" id="downloadCsv">Download CSV Log</button>
+        <div class="form-actions fullwidth">
+          <button type="submit" class="btn">Generate 12-Week Plan</button>
+          <button type="button" id="exportPdf" class="btn">Export Report (PDF)</button>
         </div>
       </form>
 
@@ -63,36 +75,38 @@
         <h3 id="result-title"></h3>
         <div id="summary"></div>
         <div id="weeks"></div>
-
-        <div id="chartCard" style="display:none;">
-          <h4>Cognitive & Physical Performance Summary</h4>
-          <canvas id="radarChart" width="400" height="350"></canvas>
-        </div>
-
-        <div id="bsgCard" style="margin-top:1rem;">
-          <h4>BSG Adherence Summary</h4>
-          <canvas id="bsgChart" width="300" height="220"></canvas>
-        </div>
       </div>
     </section>
 
-    <section id="progress">
+    <!-- Adherence Tracking -->
+    <section id="progress" class="card">
       <h2>Weekly Adherence</h2>
+      <p>Mark completed sessions to track adherence.</p>
       <div id="weeklyChecks"></div>
       <div>
         <label>Overall adherence</label>
-        <div style="width:240px;border:1px solid #ccc;height:14px;">
-          <div id="adherenceBar" style="height:14px;width:0%;background:#6b3fa0"></div>
+        <div class="progress-bar">
+          <div id="adherenceBar" class="progress-fill" style="width:0%"></div>
         </div>
         <div id="adherencePct">0%</div>
       </div>
       <div id="badges"></div>
     </section>
+
+    <!-- Hidden canvases (for PDF export only) -->
+    <div id="pdfCharts" style="display:none;">
+      <canvas id="radarChart" width="400" height="350"></canvas>
+      <canvas id="bsgChart" width="300" height="220"></canvas>
+    </div>
   </main>
 
-  <footer>Assoc. Prof. Dr. Hazwani Ahmad Yusof @ Hanafi — IPPT, USM</footer>
+  <footer class="footer card">
+    <div class="footer-inner">
+      <div>Assoc. Prof. Dr. Hazwani Ahmad Yusof @ Hanafi<br>IPPT, Universiti Sains Malaysia</div>
+    </div>
+  </footer>
 
-  <!-- Your app script (load last) -->
-  <script src="script_v5.js"></script>
+  <!-- JS -->
+  <script src="script_v5_light.js"></script>
 </body>
 </html>
