@@ -189,15 +189,100 @@ document.addEventListener("DOMContentLoaded", () => {
     XLSX.writeFile(wb, `${r.participant.replace(/\s+/g, "_")}_plan.xlsx`);
   });
 
-  // PDF Export (with radar)
-  document.getElementById("exportPdf").addEventListener("click", async () => {
-    const r = window.currentReport;
-    if (!r) { alert("Generate a plan first."); return; }
+  // --- PDF Export (Radar + Plan Table included only in PDF) ---
+document.getElementById("exportPdf").addEventListener("click", async () => {
+  const r = window.currentReport;
+  if (!r) { alert("Generate a plan first."); return; }
 
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit: "pt", format: "a4" });
-    const margin = 36;
-    let y = 36;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: "pt", format: "a4" });
+  const margin = 36;
+  let y = 36;
+
+  // Header
+  doc.setFontSize(14);
+  doc.setTextColor(60, 22, 102);
+  doc.text("Clinical Exercise Prescription Report", margin, y);
+  y += 30;
+  doc.setFontSize(11);
+  doc.text(`Participant: ${r.participant}`, margin, y);
+  doc.text(`Genotype: ${r.genotype}`, margin + 300, y);
+  y += 20;
+  doc.text(`Generated: ${new Date().toLocaleDateString()}`, margin, y);
+  y += 20;
+
+  // Pre/Post table
+  const headers = [["Measure", "Pre", "Post"]];
+  const rows = [];
+  const keys = ["moca", "digitf", "digitb", "tmt_a", "tmt_b", "sixmwt", "tug", "grip", "bbs"];
+  keys.forEach(k => rows.push([
+    k.toUpperCase(),
+    r.pre[k] || "",
+    document.getElementById(k + "_post").value || ""
+  ]));
+
+  doc.autoTable({ startY: y, head: headers, body: rows, styles: { fontSize: 10 } });
+  y = doc.lastAutoTable.finalY + 25;
+
+  // Radar chart (hidden on web, drawn only in PDF)
+  const radarCanvas = document.getElementById("radarChart");
+  const ctx = radarCanvas.getContext("2d");
+  const preVals = keys.map(k => parseFloat(r.pre[k]) || 0);
+  const postVals = keys.map(k => parseFloat(document.getElementById(k + "_post").value) || 0);
+
+  new Chart(ctx, {
+    type: "radar",
+    data: {
+      labels: keys.map(k => k.toUpperCase()),
+      datasets: [
+        { label: "Pre", data: preVals, backgroundColor: "rgba(242,107,0,0.25)", borderColor: "#f26b00" },
+        { label: "Post", data: postVals, backgroundColor: "rgba(107,63,160,0.25)", borderColor: "#6b3fa0" }
+      ]
+    },
+    options: { responsive: false, scales: { r: { beginAtZero: true } } }
+  });
+
+  // Wait for rendering before embedding
+  await new Promise(res => setTimeout(res, 1000));
+  const img = radarCanvas.toDataURL("image/png");
+  doc.addImage(img, "PNG", margin, y, 520, 320);
+  y += 340;
+
+  // Add Exercise Plan (12-week table)
+  const planHeaders = [["Week", "Day", "Type", "Duration (min)", "Cognitive Focus"]];
+  const planRows = [];
+  r.weeks.forEach(w =>
+    w.sessions.forEach(s =>
+      planRows.push([`Week ${w.week}`, s.day, s.type, s.duration_min, s.cognitive || "-"])
+    )
+  );
+
+  // Page break if needed
+  if (y > 700) { doc.addPage(); y = 40; }
+  doc.autoTable({
+    startY: y,
+    head: planHeaders,
+    body: planRows,
+    styles: { fontSize: 9 },
+    columnStyles: { 0: { cellWidth: 60 }, 1: { cellWidth: 50 } },
+    margin: { left: margin }
+  });
+  y = doc.lastAutoTable.finalY + 20;
+
+  // Adherence summary
+  let total = 0, done = 0;
+  r.weeks.forEach(w => w.sessions.forEach(s => { total++; if (s.done) done++; }));
+  const adherencePct = total ? Math.round((done / total) * 100) : 0;
+  if (y > 700) { doc.addPage(); y = 40; }
+  doc.setFontSize(11);
+  doc.text(`Overall Adherence: ${adherencePct}%`, margin, y);
+
+  // Footer
+  doc.setFontSize(9);
+  doc.text("Assoc. Prof. Dr. Hazwani Ahmad Yusof @ Hanafi — IPPT, Universiti Sains Malaysia", margin, 800);
+  doc.save(`${r.participant.replace(/\s+/g, "_")}_report.pdf`);
+});
+
 
     doc.setFontSize(14);
     doc.setTextColor(60, 22, 102);
