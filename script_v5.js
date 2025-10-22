@@ -167,38 +167,40 @@ function renderPlan(report) {
     <p class="instruction">✔️ <em>Tap any exercise once to mark it done — progress syncs automatically across sections.</em></p>`;
 
   weeksDiv.innerHTML = "";
+
   report.weeks.forEach((w, wi) => {
     const div = document.createElement("div");
     div.className = "week-card";
     div.innerHTML = `<strong>Week ${w.week}</strong><br>`;
 
-  w.sessions.forEach((s, si) => {
-  const btn = document.createElement("button");
+    w.sessions.forEach((s, si) => {
+      const btn = document.createElement("button");
 
-  // ✅ Clean display: Hide duration/cognitive info on Rest days
-  btn.textContent = s.type === "Rest"
-    ? `${s.day}: Rest`
-    : `${s.day}: ${s.type} — ${s.duration_min} min (${s.cognitive})`;
+      // ✅ Clean display: Hide duration/cognitive info on Rest days
+      btn.textContent = s.type === "Rest"
+        ? `${s.day}: Rest`
+        : `${s.day}: ${s.type} — ${s.duration_min} min (${s.cognitive})`;
 
-  btn.className = "day-btn";
+      btn.className = "day-btn";
+      if (s.type === "Rest") btn.classList.add("rest");
+      if (s.done) btn.classList.add("done");
 
-  // ✅ Maintain “done” visual if previously marked
-  if (s.done) btn.classList.add("done");
+      // ✅ Toggle + sync to Weekly Progress
+      btn.onclick = () => {
+        s.done = !s.done;
+        btn.classList.toggle("done");
+        syncWeeklyButton(wi, si, s.done);
+        updateAdherence();
+      };
 
-  // ✅ Toggling logic (with sync + adherence)
-  btn.onclick = () => {
-    s.done = !s.done;
-    btn.classList.toggle("done");
-    updateAdherence();
-  };
-
-  div.appendChild(btn);
-});
+      div.appendChild(btn);
+    });
 
     weeksDiv.appendChild(div);
   });
 }
-  // --- Weekly checks for adherence ---
+
+// --- Weekly checks for adherence ---
 function setupWeeklyChecks(report) {
   const container = document.getElementById("weeklyChecks");
   container.innerHTML = "";
@@ -218,7 +220,7 @@ function setupWeeklyChecks(report) {
       btn.className = "day-btn";
       if (s.done) btn.classList.add("done");
 
-      // synced toggling (updates both sections)
+      // ✅ Toggle + sync back to Exercise Plan
       btn.addEventListener("click", () => {
         s.done = !s.done;
         btn.classList.toggle("done");
@@ -228,10 +230,12 @@ function setupWeeklyChecks(report) {
 
       list.appendChild(btn);
     });
+
     card.appendChild(list);
     container.appendChild(card);
   });
 }
+
 // --- Sync buttons between Exercise Plan and Weekly Progress ---
 function syncPlanButton(weekIndex, sessionIndex, isDone) {
   const planWeeks = weeksDiv.querySelectorAll(".week-card");
