@@ -155,7 +155,8 @@ document.addEventListener("DOMContentLoaded", () => {
       <p><strong>Sessions/week:</strong> ${report.template.sessions_per_week} • 
       <strong>Session length:</strong> ${report.template.session_length} min • 
       <strong>Intensity:</strong> ${report.template.intensity}</p>
-      <p class="instruction">🧠 <strong>Note:</strong> The plan below is automatically tailored to your genotype, fitness, and constraints.</p>;
+      <p class="instruction">🧠 <strong>Note:</strong> The plan below is automatically tailored to your genotype, fitness, and constraints.</p>`;
+    
     weeksDiv.innerHTML = "";
     report.weeks.forEach((w) => {
       const div = document.createElement("div");
