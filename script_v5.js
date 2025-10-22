@@ -1,6 +1,5 @@
 // =============================================
-// EXECOGIM v8.4 — Clinical Exercise Prescription App
-// Universiti Sains Malaysia | IPPT
+// EXECOGIM v9 — Clinical Exercise Prescription App
 // =============================================
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -20,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // --- Normative References ---
+  // --- Normative references ---
   const norms = {
     moca: "Normal: ≥26/30 (Mild impairment <26)",
     digitf: "Normal: 6–9 digits forward span.",
@@ -33,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
     bbs: "Norm: 50–56 = normal balance, <45 = increased fall risk."
   };
 
-  // --- Show Modal Info ---
+  // --- Info Modal ---
   const modalBackdrop = document.getElementById("modalBackdrop");
   const modalTitle = document.getElementById("modalTitle");
   const modalBody = document.getElementById("modalBody");
@@ -55,22 +54,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- Generate Plan Button ---
   const form = document.getElementById("inputForm");
-  const generateBtn = document.getElementById("generateBtn");
-
   if (form) {
     form.addEventListener("submit", (e) => {
       e.preventDefault();
       generatePlan();
     });
   }
-  if (generateBtn) {
-    generateBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      generatePlan();
-    });
-  }
 
-  // --- Generate 12-Week Plan ---
   function generatePlan() {
     const participant = document.getElementById("participant_name").value || "Participant";
     const genotype = document.getElementById("genotype").value;
@@ -78,11 +68,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const constraints = Array.from(document.querySelectorAll('input[name="constraint"]:checked')).map(c => c.value);
 
     const pre = {
-      moca: moca_pre.value, digitf: digitf_pre.value, digitb: digitb_pre.value,
-      tmt_a: tmt_a_pre.value, tmt_b: tmt_b_pre.value, sixmwt: sixmwt_pre.value,
-      tug: tug_pre.value, grip: grip_pre.value, bbs: bbs_pre.value
+      moca: +moca_pre.value || 0, digitf: +digitf_pre.value || 0, digitb: +digitb_pre.value || 0,
+      tmt_a: +tmt_a_pre.value || 0, tmt_b: +tmt_b_pre.value || 0, sixmwt: +sixmwt_pre.value || 0,
+      tug: +tug_pre.value || 0, grip: +grip_pre.value || 0, bbs: +bbs_pre.value || 0
     };
 
+    const post = {
+      moca: +moca_post.value || 0, digitf: +digitf_post.value || 0, digitb: +digitb_post.value || 0,
+      tmt_a: +tmt_a_post.value || 0, tmt_b: +tmt_b_post.value || 0, sixmwt: +sixmwt_post.value || 0,
+      tug: +tug_post.value || 0, grip: +grip_post.value || 0, bbs: +bbs_post.value || 0
+    };
+
+    // --- Genotype-specific template ---
     const template = genotype.toLowerCase().startsWith("val")
       ? { label: "Val/Val", sessions_per_week: 4, session_length: 30, intensity: "moderate-to-vigorous" }
       : { label: "Met carrier", sessions_per_week: 5, session_length: 40, intensity: "light-to-moderate" };
@@ -96,25 +93,26 @@ document.addEventListener("DOMContentLoaded", () => {
       template.session_length = Math.round(template.session_length * 1.1);
     }
 
+    // --- 12-week plan generator ---
     const weeks = [];
     for (let wk = 1; wk <= 12; wk++) {
       const sessions = [];
       ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].forEach((d) => {
         let type = "Rest", dur = 0, cog = "";
         if (template.label === "Val/Val") {
-          if (d === "Mon") { type = "HIIT"; dur = template.session_length; cog = "reaction"; }
-          else if (d === "Tue") { type = "Resistance"; dur = Math.round(template.session_length * 0.9); cog = "random-cue"; }
-          else if (d === "Wed") { type = "Skill/Dual-task"; dur = Math.round(template.session_length * 0.8); }
-          else if (d === "Thu") { type = "Active Recovery"; dur = 20; }
-          else if (d === "Fri") { type = "Mixed Cardio-Strength"; dur = template.session_length; }
-          else if (d === "Sat") { type = "Optional Sport"; dur = 30; }
+          if (d === "Mon") { type = "HIIT"; dur = template.session_length; cog = "Reaction"; }
+          else if (d === "Tue") { type = "Resistance"; dur = Math.round(template.session_length * 0.9); cog = "Random Cue"; }
+          else if (d === "Wed") { type = "Skill/Dual-task"; dur = Math.round(template.session_length * 0.8); cog = "Coordination"; }
+          else if (d === "Thu") { type = "Active Recovery"; dur = 20; cog = "Relaxation"; }
+          else if (d === "Fri") { type = "Mixed Cardio-Strength"; dur = template.session_length; cog = "Focus"; }
+          else if (d === "Sat") { type = "Optional Sport"; dur = 30; cog = "Strategy"; }
         } else {
-          if (d === "Mon") { type = "Endurance (steady)"; dur = template.session_length; }
-          else if (d === "Tue") { type = "Strength+Balance"; dur = Math.round(template.session_length * 0.8); }
-          else if (d === "Wed") { type = "Adventure Mode"; dur = 20; }
-          else if (d === "Thu") { type = "Yoga/Tai Chi"; dur = 30; }
-          else if (d === "Fri") { type = "Endurance intervals"; dur = template.session_length; }
-          else if (d === "Sat") { type = "Light aerobic + memory"; dur = 30; }
+          if (d === "Mon") { type = "Endurance (steady)"; dur = template.session_length; cog = "Memory"; }
+          else if (d === "Tue") { type = "Strength+Balance"; dur = Math.round(template.session_length * 0.8); cog = "Attention"; }
+          else if (d === "Wed") { type = "Adventure Mode"; dur = 20; cog = "Decision-making"; }
+          else if (d === "Thu") { type = "Yoga/Tai Chi"; dur = 30; cog = "Mindfulness"; }
+          else if (d === "Fri") { type = "Endurance intervals"; dur = template.session_length; cog = "Executive Function"; }
+          else if (d === "Sat") { type = "Light aerobic + memory"; dur = 30; cog = "Memory Recall"; }
         }
         const prog = Math.floor((wk - 1) / 4) * 2;
         sessions.push({ day: d, type, duration_min: dur + prog, cognitive: cog, done: false });
@@ -122,7 +120,29 @@ document.addEventListener("DOMContentLoaded", () => {
       weeks.push({ week: wk, sessions });
     }
 
-    window.currentReport = { participant, genotype, fitness, constraints, template, pre, weeks };
+    // --- Summary Table (Pre vs Post) ---
+    const summaryTable = document.getElementById("summaryTable");
+    if (summaryTable) {
+      summaryTable.innerHTML = `
+        <tr><th>Measure</th><th>Pre</th><th>Post</th><th>Change</th><th>Status</th></tr>`;
+      Object.keys(pre).forEach(k => {
+        const diff = post[k] - pre[k];
+        let status = "– No change";
+        if (diff > 0) status = "↑ Improved";
+        else if (diff < 0) status = "↓ Worsened";
+        summaryTable.innerHTML += `
+          <tr>
+            <td>${k.toUpperCase()}</td>
+            <td>${pre[k]}</td>
+            <td>${post[k]}</td>
+            <td>${diff > 0 ? "+" + diff : diff}</td>
+            <td>${status}</td>
+          </tr>`;
+      });
+    }
+
+    // --- Render Plan ---
+    window.currentReport = { participant, genotype, fitness, constraints, template, pre, post, weeks };
     renderPlan(window.currentReport);
     setupWeeklyChecks(window.currentReport);
     resultDiv.style.display = "block";
@@ -131,10 +151,11 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- Render Plan ---
   function renderPlan(report) {
     document.getElementById("result-title").textContent = `${report.participant} — ${report.genotype}`;
-    document.getElementById("summary").innerHTML =
-      `<p><strong>Sessions/week:</strong> ${report.template.sessions_per_week} • 
+    document.getElementById("summary").innerHTML = `
+      <p><strong>Sessions/week:</strong> ${report.template.sessions_per_week} • 
       <strong>Session length:</strong> ${report.template.session_length} min • 
-      <strong>Intensity:</strong> ${report.template.intensity}</p>`;
+      <strong>Intensity:</strong> ${report.template.intensity}</p>
+      <p class="instruction">🧠 <strong>Instructions:</strong> Tap each day’s button after completing a session to track adherence.</p>`;
     weeksDiv.innerHTML = "";
     report.weeks.forEach((w) => {
       const div = document.createElement("div");
@@ -142,7 +163,7 @@ document.addEventListener("DOMContentLoaded", () => {
       div.innerHTML = `<strong>Week ${w.week}</strong><br>`;
       w.sessions.forEach((s) => {
         const btn = document.createElement("button");
-        btn.textContent = `${s.day}: ${s.type} — ${s.duration_min} min`;
+        btn.textContent = `${s.day}: ${s.type} — ${s.duration_min} min (${s.cognitive})`;
         btn.className = "day-btn";
         btn.onclick = () => { s.done = !s.done; btn.classList.toggle("done"); updateAdherence(); };
         div.appendChild(btn);
@@ -151,10 +172,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // --- Weekly Checks ---
+  // --- Weekly checks for adherence ---
   function setupWeeklyChecks(report) {
     const container = document.getElementById("weeklyChecks");
-    if (!container) return;
     container.innerHTML = "";
     report.weeks.forEach((w) => {
       const card = document.createElement("div");
@@ -167,11 +187,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const btn = document.createElement("button");
         btn.textContent = s.day;
         btn.className = "day-btn";
-        btn.onclick = () => {
-          s.done = !s.done;
-          btn.classList.toggle("done");
-          updateAdherence();
-        };
+        btn.onclick = () => { s.done = !s.done; btn.classList.toggle("done"); updateAdherence(); };
         list.appendChild(btn);
       });
       card.appendChild(list);
@@ -179,7 +195,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // --- Adherence Logic ---
+  // --- Adherence logic ---
   function updateAdherence() {
     const r = window.currentReport;
     if (!r) return;
@@ -190,21 +206,7 @@ document.addEventListener("DOMContentLoaded", () => {
     adherencePct.textContent = pct + "%";
   }
 
-  // --- Excel Export ---
-  document.getElementById("downloadXlsx").addEventListener("click", () => {
-    const r = window.currentReport;
-    if (!r) { alert("Generate a plan first."); return; }
-    const wb = XLSX.utils.book_new();
-    const ws_data = [["Week", "Day", "Type", "Duration (min)", "Cognitive", "Completed"]];
-    r.weeks.forEach(w => w.sessions.forEach(s =>
-      ws_data.push([w.week, s.day, s.type, s.duration_min, s.cognitive, s.done ? "Yes" : "No"])
-    ));
-    const ws = XLSX.utils.aoa_to_sheet(ws_data);
-    XLSX.utils.book_append_sheet(wb, ws, "Plan");
-    XLSX.writeFile(wb, `${r.participant.replace(/\s+/g, "_")}_plan.xlsx`);
-  });
-
-  // --- PDF Export (Radar + Plan Table) ---
+  // --- PDF Export ---
   document.getElementById("exportPdf").addEventListener("click", async () => {
     const r = window.currentReport;
     if (!r) { alert("Generate a plan first."); return; }
@@ -225,51 +227,54 @@ document.addEventListener("DOMContentLoaded", () => {
     doc.text(`Generated: ${new Date().toLocaleDateString()}`, margin, y);
     y += 20;
 
-    const headers = [["Measure", "Pre", "Post"]];
+    // --- Assessment Summary ---
+    const headers = [["Measure", "Pre", "Post", "Change", "Status"]];
     const rows = [];
-    const keys = ["moca","digitf","digitb","tmt_a","tmt_b","sixmwt","tug","grip","bbs"];
-    keys.forEach(k => rows.push([k.toUpperCase(), r.pre[k] || "", document.getElementById(k + "_post").value || ""]));
-
+    Object.keys(r.pre).forEach(k => {
+      const diff = r.post[k] - r.pre[k];
+      let status = "– No change";
+      if (diff > 0) status = "↑ Improved";
+      else if (diff < 0) status = "↓ Worsened";
+      rows.push([k.toUpperCase(), r.pre[k], r.post[k], diff > 0 ? "+" + diff : diff, status]);
+    });
     doc.autoTable({ startY: y, head: headers, body: rows, styles: { fontSize: 10 } });
     y = doc.lastAutoTable.finalY + 25;
 
+    // --- Radar Chart (PDF only) ---
     const radarCanvas = document.createElement("canvas");
-    radarCanvas.width = 500;
-    radarCanvas.height = 500;
+    radarCanvas.width = 500; radarCanvas.height = 500;
     const ctx = radarCanvas.getContext("2d");
-    const preVals = keys.map(k => parseFloat(r.pre[k]) || 0);
-    const postVals = keys.map(k => parseFloat(document.getElementById(k + "_post").value) || 0);
-
     new Chart(ctx, {
       type: "radar",
       data: {
-        labels: keys.map(k => k.toUpperCase()),
+        labels: Object.keys(r.pre).map(k => k.toUpperCase()),
         datasets: [
-          { label: "Pre", data: preVals, backgroundColor: "rgba(242,107,0,0.25)", borderColor: "#f26b00" },
-          { label: "Post", data: postVals, backgroundColor: "rgba(107,63,160,0.25)", borderColor: "#6b3fa0" }
+          { label: "Pre", data: Object.values(r.pre), backgroundColor: "rgba(242,107,0,0.25)", borderColor: "#f26b00" },
+          { label: "Post", data: Object.values(r.post), backgroundColor: "rgba(107,63,160,0.25)", borderColor: "#6b3fa0" }
         ]
       },
       options: { responsive: false, scales: { r: { beginAtZero: true } } }
     });
-
     await new Promise(res => setTimeout(res, 800));
     const img = radarCanvas.toDataURL("image/png");
     doc.addImage(img, "PNG", margin, y, 520, 320);
     y += 340;
 
+    // --- Exercise Plan ---
     const planHeaders = [["Week", "Day", "Type", "Duration (min)", "Cognitive Focus"]];
     const planRows = [];
-    r.weeks.forEach(w => w.sessions.forEach(s => planRows.push([`Week ${w.week}`, s.day, s.type, s.duration_min, s.cognitive || "-"])));
-    if (y > 700) { doc.addPage(); y = 40; }
+    r.weeks.forEach(w => w.sessions.forEach(s =>
+      planRows.push([`Week ${w.week}`, s.day, s.type, s.duration_min, s.cognitive])
+    ));
     doc.autoTable({ startY: y, head: planHeaders, body: planRows, styles: { fontSize: 9 } });
     y = doc.lastAutoTable.finalY + 20;
 
+    // --- Adherence ---
     let total = 0, done = 0;
     r.weeks.forEach(w => w.sessions.forEach(s => { total++; if (s.done) done++; }));
     const adherencePct = total ? Math.round((done / total) * 100) : 0;
     doc.setFontSize(11);
     doc.text(`Overall Adherence: ${adherencePct}%`, margin, y);
-
     doc.save(`${r.participant.replace(/\s+/g, "_")}_report.pdf`);
   });
 
