@@ -283,19 +283,17 @@ document.querySelectorAll(".info-btn").forEach((btn) => {
     doc.autoTable({ startY: y, head: planHeaders, body: planRows, styles: { fontSize: 9 } });
     y = doc.lastAutoTable.finalY + 20;
 
-    // --- Adherence ---
-    let total = 0, done = 0;
-    r.weeks.forEach(w => w.sessions.forEach(s => { total++; if (s.done) done++; }));
-    const adherencePct = total ? Math.round((done / total) * 100) : 0;
-    doc.setFontSize(11);
-    const total = r.weeks.reduce((sum, w) => sum + w.sessions.length, 0);
-const done = r.weeks.reduce((sum, w) => sum + w.sessions.filter(s => s.done).length, 0);
-const pct = total ? Math.round((done / total) * 100) : 0;
-doc.setFontSize(11);
-doc.text(`Overall adherence: ${done}/${total} sessions completed (${pct}%)`, margin, y);
+    // --- Adherence (for PDF export) ---
+const pdfTotal = r.weeks.reduce((sum, w) => sum + w.sessions.length, 0);
+const pdfDone = r.weeks.reduce((sum, w) => sum + w.sessions.filter(s => s.done).length, 0);
+const pdfPct = pdfTotal ? Math.round((pdfDone / pdfTotal) * 100) : 0;
 
-    doc.save(`${r.participant.replace(/\s+/g, "_")}_report.pdf`);
-  });
+doc.setFontSize(11);
+doc.text(`Overall adherence: ${pdfDone}/${pdfTotal} sessions completed (${pdfPct}%)`, margin, y);
+
+// ✅ Save the PDF
+doc.save(`${r.participant.replace(/\s+/g, "_")}_report.pdf`);
+
 
   // --- PWA Install Banner ---
   let deferredPrompt;
