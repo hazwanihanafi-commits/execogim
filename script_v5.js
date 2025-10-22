@@ -157,29 +157,34 @@ document.querySelectorAll(".info-btn").forEach((btn) => {
   }
 
   // --- Render Plan ---
-  function renderPlan(report) {
+function renderPlan(report) {
   document.getElementById("result-title").textContent = `${report.participant} — ${report.genotype}`;
   document.getElementById("summary").innerHTML = `
     <p><strong>Sessions/week:</strong> ${report.template.sessions_per_week} • 
     <strong>Session length:</strong> ${report.template.session_length} min • 
     <strong>Intensity:</strong> ${report.template.intensity}</p>
-    <p class="instruction">🧠 <strong>Instruction:</strong> Tap each exercise after completing it to mark as done ✔️</p>`;
+    <p class="instruction">✔️ <em>Tap any exercise once to mark it done — progress syncs automatically across sections.</em></p>`;
 
   weeksDiv.innerHTML = "";
-  report.weeks.forEach((w) => {
+  report.weeks.forEach((w, wi) => {
     const div = document.createElement("div");
     div.className = "week-card";
     div.innerHTML = `<strong>Week ${w.week}</strong><br>`;
-    w.sessions.forEach((s) => {
+
+    w.sessions.forEach((s, si) => {
       const btn = document.createElement("button");
       btn.textContent = `${s.day}: ${s.type} — ${s.duration_min} min (${s.cognitive})`;
       btn.className = "day-btn";
       if (s.done) btn.classList.add("done");
-      btn.onclick = () => {
+
+      // synced toggling (updates both sections)
+      btn.addEventListener("click", () => {
         s.done = !s.done;
         btn.classList.toggle("done");
-        updateAdherence(); // updates summary instantly
-      };
+        syncWeeklyButton(wi, si, s.done);
+        updateAdherence();
+      });
+
       div.appendChild(btn);
     });
     weeksDiv.appendChild(div);
@@ -187,38 +192,77 @@ document.querySelectorAll(".info-btn").forEach((btn) => {
 }
 
   // --- Weekly checks for adherence ---
-  function setupWeeklyChecks(report) {
-    const container = document.getElementById("weeklyChecks");
-    container.innerHTML = "";
-    report.weeks.forEach((w) => {
-      const card = document.createElement("div");
-      card.className = "week-card";
-      const title = document.createElement("h4");
-      title.textContent = `Week ${w.week}`;
-      card.appendChild(title);
-      const list = document.createElement("div");
-      w.sessions.forEach((s) => {
-        const btn = document.createElement("button");
-        btn.textContent = s.day;
-        btn.className = "day-btn";
-        btn.onclick = () => { s.done = !s.done; btn.classList.toggle("done"); updateAdherence(); };
-        list.appendChild(btn);
+function setupWeeklyChecks(report) {
+  const container = document.getElementById("weeklyChecks");
+  container.innerHTML = "";
+
+  report.weeks.forEach((w, wi) => {
+    const card = document.createElement("div");
+    card.className = "week-card";
+
+    const title = document.createElement("h4");
+    title.textContent = `Week ${w.week}`;
+    card.appendChild(title);
+
+    const list = document.createElement("div");
+    w.sessions.forEach((s, si) => {
+      const btn = document.createElement("button");
+      btn.textContent = s.day;
+      btn.className = "day-btn";
+      if (s.done) btn.classList.add("done");
+
+      // synced toggling (updates both sections)
+      btn.addEventListener("click", () => {
+        s.done = !s.done;
+        btn.classList.toggle("done");
+        syncPlanButton(wi, si, s.done);
+        updateAdherence();
       });
-      card.appendChild(list);
-      container.appendChild(card);
+
+      list.appendChild(btn);
     });
+    card.appendChild(list);
+    container.appendChild(card);
+  });
+}
+// --- Sync buttons between Exercise Plan and Weekly Progress ---
+function syncPlanButton(weekIndex, sessionIndex, isDone) {
+  const planWeeks = weeksDiv.querySelectorAll(".week-card");
+  const targetWeek = planWeeks[weekIndex];
+  if (!targetWeek) return;
+  const targetButton = targetWeek.querySelectorAll(".day-btn")[sessionIndex];
+  if (targetButton) {
+    targetButton.classList.toggle("done", isDone);
   }
+}
+
+function syncWeeklyButton(weekIndex, sessionIndex, isDone) {
+  const weekCards = document.getElementById("weeklyChecks").querySelectorAll(".week-card");
+  const targetWeek = weekCards[weekIndex];
+  if (!targetWeek) return;
+  const targetButton = targetWeek.querySelectorAll(".day-btn")[sessionIndex];
+  if (targetButton) {
+    targetButton.classList.toggle("done", isDone);
+  }
+}
 
   // --- Adherence logic ---
-  function updateAdherence() {
-    const r = window.currentReport;
-    if (!r) return;
-    let total = 0, done = 0;
-    r.weeks.forEach((w) => w.sessions.forEach((s) => { total++; if (s.done) done++; }));
-    const pct = total ? Math.round((done / total) * 100) : 0;
-    adherenceBar.style.width = pct + "%";
-    adherencePct.textContent = pct + "%";
-  }
+function updateAdherence() {
+  const r = window.currentReport;
+  if (!r) return;
+
+  let total = 0, done = 0;
+  r.weeks.forEach((w) =>
+    w.sessions.forEach((s) => {
+      total++;
+      if (s.done) done++;
+    })
+  );
+
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  adherenceBar.style.width = pct + "%";
+  adherencePct.textContent = `${done}/${total} sessions completed (${pct}%)`;
+}
 
   // --- PDF Export ---
   document.getElementById("exportPdf").addEventListener("click", async () => {
