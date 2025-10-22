@@ -123,7 +123,8 @@ document.querySelectorAll(".info-btn").forEach((btn) => {
           else if (d === "Sat") { type = "Light aerobic + memory"; dur = 30; cog = "Memory Recall"; }
         }
         const prog = Math.floor((wk - 1) / 4) * 2;
-        sessions.push({ day: d, type, duration_min: dur + prog, cognitive: cog, done: false });
+const finalDuration = type === "Rest" ? 0 : dur + prog;
+sessions.push({ day: d, type, duration_min: finalDuration, cognitive: cog, done: false });
       });
       weeks.push({ week: wk, sessions });
     }
@@ -171,25 +172,31 @@ function renderPlan(report) {
     div.className = "week-card";
     div.innerHTML = `<strong>Week ${w.week}</strong><br>`;
 
-    w.sessions.forEach((s, si) => {
-      const btn = document.createElement("button");
-      btn.textContent = `${s.day}: ${s.type} — ${s.duration_min} min (${s.cognitive})`;
-      btn.className = "day-btn";
-      if (s.done) btn.classList.add("done");
+  w.sessions.forEach((s, si) => {
+  const btn = document.createElement("button");
 
-      // synced toggling (updates both sections)
-      btn.addEventListener("click", () => {
-        s.done = !s.done;
-        btn.classList.toggle("done");
-        syncWeeklyButton(wi, si, s.done);
-        updateAdherence();
-      });
+  // ✅ Clean display: Hide duration/cognitive info on Rest days
+  btn.textContent = s.type === "Rest"
+    ? `${s.day}: Rest`
+    : `${s.day}: ${s.type} — ${s.duration_min} min (${s.cognitive})`;
 
-      div.appendChild(btn);
-    });
+  btn.className = "day-btn";
+
+  // ✅ Maintain “done” visual if previously marked
+  if (s.done) btn.classList.add("done");
+
+  // ✅ Toggling logic (with sync + adherence)
+  btn.onclick = () => {
+    s.done = !s.done;
+    btn.classList.toggle("done");
+    updateAdherence();
+  };
+
+  div.appendChild(btn);
+});
+
     weeksDiv.appendChild(div);
   });
-}
 
   // --- Weekly checks for adherence ---
 function setupWeeklyChecks(report) {
