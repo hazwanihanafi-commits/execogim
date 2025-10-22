@@ -1,59 +1,103 @@
-// script_v7.js
-// EXECOGIM v7 — charts only in PDF, full UI interactions
+// script_v8.js — EXECOGIM v8
+// Features:
+// - Generate plan only when clicking Generate
+// - Clickable info modal (parameter norms for general adults)
+// - Excel (.xlsx) export with two sheets (Assessments / Plan)
+// - PDF export includes 2 offscreen radar charts appended at the end
+// - PWA install banner logic included
+
 document.addEventListener('DOMContentLoaded', () => {
   // Elements
-  const form = document.getElementById('inputForm');
-  const result = document.getElementById('result');
-  const weeksDiv = document.getElementById('weeks');
+  const inputForm = document.getElementById('inputForm');
+  const generateBtn = document.getElementById('generateBtn');
+  const resultDiv = document.getElementById('result');
+  const titleEl = document.getElementById('result-title');
+  const summaryEl = document.getElementById('summary');
+  const weeksEl = document.getElementById('weeks');
   const weeklyChecks = document.getElementById('weeklyChecks');
   const adherenceBar = document.getElementById('adherenceBar');
   const adherencePct = document.getElementById('adherencePct');
-  const exportBtn = document.getElementById('exportPdf');
-  const pdfRadarCanvas = document.getElementById('radarChart');
-  const pdfBsgCanvas = document.getElementById('bsgChart');
+  const exportPdfBtn = document.getElementById('exportPdf');
+  const downloadXlsxBtn = document.getElementById('downloadXlsx');
 
-  // small helper to safely read value
+  // Modal elements
+  const modalBackdrop = document.getElementById('modalBackdrop');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalBody = document.getElementById('modalBody');
+  const modalClose = document.getElementById('modalClose');
+
+  // PWA install
+  let deferredPrompt;
+  const installContainer = document.getElementById('installContainer');
+  const installBtn = document.getElementById('installBtn');
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installContainer.style.display = 'block';
+  });
+  if (installBtn) installBtn.addEventListener('click', async () => {
+    installContainer.style.display = 'none';
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const choice = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+  });
+
+  // Normative values for general adults (clickable modal content)
+  const norms = {
+    moca: { title: 'MoCA — Montreal Cognitive Assessment', text: 'General adult norm: typically >=26. Use clinical context; lower scores suggest cognitive impairment.' },
+    digitf: { title: 'Digit Span Forward', text: 'Typical adults: 6–9 digits forward is common; values vary with education and age.' },
+    digitb: { title: 'Digit Span Backward', text: 'Typical adults: 4–7 digits backward; lower than forward span.' },
+    tmt_a: { title: 'TMT A (Trail Making Test A)', text: 'Typical adults: ~20–40 seconds depending on age and education; lower is better.' },
+    tmt_b: { title: 'TMT B (Trail Making Test B)', text: 'Typical adults: ~40–90 seconds; lower is better. Time depends on set-switching ability.' },
+    sixmwt: { title: '6MWT (6-Minute Walk Test)', text: 'General adult normative distance: ~400–700 m depending on age and fitness.' },
+    tug: { title: 'TUG (Timed Up & Go)', text: 'Typical healthy adults: <10–12 seconds is common; lower is better.' },
+    grip: { title: 'Handgrip Strength', text: 'General adult values differ by sex/age; typical healthy males 35–50 kg, females 20–35 kg.' },
+    bbs: { title: 'Berg Balance Scale (BBS)', text: 'Range 0–56. Higher is better; scores <45 may indicate fall risk in older adults.' }
+  };
+
+  // Info modal handling (clickable info button)
+  document.querySelectorAll('.info-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.getAttribute('data-key');
+      if (!key || !norms[key]) return;
+      modalTitle.textContent = norms[key].title;
+      modalBody.textContent = norms[key].text;
+      modalBackdrop.style.display = 'flex';
+    });
+  });
+  modalClose.addEventListener('click', () => modalBackdrop.style.display = 'none');
+  modalBackdrop.addEventListener('click', (e) => { if (e.target === modalBackdrop) modalBackdrop.style.display = 'none'; });
+
+  // small helper
   const $ = id => document.getElementById(id);
   const safeVal = id => { const el = $(id); return el ? el.value : ''; };
 
-  // current report container
-  window.currentReport = null;
-
-  // Generate 12-week plan
-  form.addEventListener('submit', (e) => {
+  // Generate plan handler (only when clicking Generate)
+  inputForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    // Read inputs
+    generatePlan();
+  });
+
+  function generatePlan() {
     const participant = safeVal('participant_name') || 'Participant';
     const genotype = safeVal('genotype') || 'Val/Val';
     const fitness = parseInt(safeVal('fitness_slider')) || 3;
 
     const pre = {
-      moca: safeVal('moca_pre'),
-      digitf: safeVal('digitf_pre'),
-      digitb: safeVal('digitb_pre'),
-      tmt_a: safeVal('tmt_a_pre'),
-      tmt_b: safeVal('tmt_b_pre'),
-      sixmwt: safeVal('sixmwt_pre'),
-      tug: safeVal('tug_pre'),
-      grip: safeVal('grip_pre'),
-      bbs: safeVal('bbs_pre')
+      moca: safeVal('moca_pre'), digitf: safeVal('digitf_pre'), digitb: safeVal('digitb_pre'),
+      tmt_a: safeVal('tmt_a_pre'), tmt_b: safeVal('tmt_b_pre'),
+      sixmwt: safeVal('sixmwt_pre'), tug: safeVal('tug_pre'), grip: safeVal('grip_pre'), bbs: safeVal('bbs_pre')
     };
 
-    // template by genotype
     const template = genotype.toLowerCase().startsWith('val')
       ? { label: 'Val/Val', sessions_per_week: 4, session_length: 30, intensity: 'moderate-to-vigorous' }
       : { label: 'Met carrier', sessions_per_week: 5, session_length: 40, intensity: 'light-to-moderate' };
 
-    if (fitness < 3) {
-      template.sessions_per_week = Math.max(3, template.sessions_per_week - 1);
-      template.session_length = Math.round(template.session_length * 0.9);
-    }
-    if (fitness > 3) {
-      template.sessions_per_week += 1;
-      template.session_length = Math.round(template.session_length * 1.1);
-    }
+    if (fitness < 3) { template.sessions_per_week = Math.max(3, template.sessions_per_week - 1); template.session_length = Math.round(template.session_length * 0.9); }
+    if (fitness > 3) { template.sessions_per_week += 1; template.session_length = Math.round(template.session_length * 1.1); }
 
-    // build 12 weeks
     const weeks = [];
     for (let wk = 1; wk <= 12; wk++) {
       const sessions = [];
@@ -80,75 +124,46 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.currentReport = { participant, genotype, fitness, template, pre, weeks };
-
     renderPlan(window.currentReport);
     setupWeeklyChecks(window.currentReport);
-    result.style.display = 'block';
-  });
+    resultDiv.style.display = 'block';
+    try { localStorage.setItem('lastReport', JSON.stringify(window.currentReport)); } catch (e) {}
+  }
 
-
-  // Render plan (textual)
-  function renderPlan(report) {
-    if (!report) return;
-    $('result-title').textContent = `${report.participant} — ${report.genotype}`;
-    const summary = `<p><strong>Sessions/week:</strong> ${report.template.sessions_per_week} • <strong>Session length:</strong> ${report.template.session_length} min • <strong>Intensity:</strong> ${report.template.intensity}</p>`;
-    // create weeks list
-    weeksDiv.innerHTML = '';
-    report.weeks.forEach(w => {
-      const wdiv = document.createElement('div');
-      wdiv.className = 'week-block';
+  function renderPlan(r) {
+    if (!r) return;
+    titleEl.textContent = `${r.participant} — ${r.genotype}`;
+    summaryEl.innerHTML = `<p><strong>Sessions/week:</strong> ${r.template.sessions_per_week} • <strong>Session length:</strong> ${r.template.session_length} min • <strong>Intensity:</strong> ${r.template.intensity}</p>`;
+    weeksEl.innerHTML = '';
+    r.weeks.forEach(w => {
+      const div = document.createElement('div');
+      div.className = 'week-block';
       const ul = document.createElement('ul');
       w.sessions.forEach(s => {
         const li = document.createElement('li');
         li.textContent = `${s.day}: ${s.type} — ${s.duration_min} min`;
         ul.appendChild(li);
       });
-      wdiv.innerHTML = `<h4>Week ${w.week}</h4>`;
-      wdiv.appendChild(ul);
-      weeksDiv.appendChild(wdiv);
+      div.innerHTML = `<h4>Week ${w.week}</h4>`;
+      div.appendChild(ul);
+      weeksEl.appendChild(div);
     });
-    // set summary inside container (create or reuse)
-    let summaryEl = document.getElementById('summary');
-    if (!summaryEl) {
-      summaryEl = document.createElement('div'); summaryEl.id = 'summary';
-      weeksDiv.parentNode.insertBefore(summaryEl, weeksDiv);
-    }
-    summaryEl.innerHTML = summary;
   }
 
-  // Setup weekly adherence UI (grid of small cards)
-  function setupWeeklyChecks(report) {
+  function setupWeeklyChecks(r) {
     weeklyChecks.innerHTML = '';
-    if (!report) return;
-    report.weeks.forEach(w => {
+    if (!r) return;
+    r.weeks.forEach(w => {
       const card = document.createElement('div');
       card.className = 'week-card';
-      card.style.padding = '12px';
-      card.style.borderRadius = '10px';
-      card.style.border = '1px solid rgba(107,63,160,0.06)';
       card.innerHTML = `<h4 style="margin:0 0 8px">Week ${w.week}</h4>`;
       w.sessions.forEach(s => {
         const btn = document.createElement('button');
         btn.className = 'day-btn';
         btn.textContent = s.day;
-        btn.style.margin = '6px';
-        btn.style.padding = '8px 12px';
-        btn.style.borderRadius = '10px';
-        btn.style.border = '2px solid #6b3fa0';
-        btn.style.background = 'white';
-        btn.style.color = '#6b3fa0';
-        btn.style.cursor = 'pointer';
         btn.onclick = () => {
           s.done = !s.done;
-          if (s.done) {
-            btn.style.background = 'linear-gradient(90deg,#6b3fa0,#f26b00)';
-            btn.style.color = '#fff';
-            btn.style.borderColor = 'transparent';
-          } else {
-            btn.style.background = 'white';
-            btn.style.color = '#6b3fa0';
-            btn.style.borderColor = '#6b3fa0';
-          }
+          if (s.done) btn.classList.add('done'); else btn.classList.remove('done');
           updateAdherence();
         };
         card.appendChild(btn);
@@ -158,84 +173,112 @@ document.addEventListener('DOMContentLoaded', () => {
     updateAdherence();
   }
 
-  // Update adherence (progress bar)
   function updateAdherence() {
-    const r = window.currentReport;
-    if (!r) return;
+    const r = window.currentReport; if (!r) return;
     let total = 0, done = 0;
     r.weeks.forEach(w => w.sessions.forEach(s => { total++; if (s.done) done++; }));
     const pct = total ? Math.round(done / total * 100) : 0;
-    if (adherenceBar) adherenceBar.style.width = pct + '%';
-    if (adherencePct) adherencePct.textContent = pct + '%';
+    adherenceBar.style.width = pct + '%';
+    adherencePct.textContent = pct + '%';
   }
 
-  // PDF export: build report + generate offscreen charts and append at end
-  exportBtn.addEventListener('click', async () => {
+  // XLSX Export (two sheets: Assessments & Plan)
+  downloadXlsxBtn.addEventListener('click', () => {
     const r = window.currentReport;
-    if (!r) { alert('Generate plan first'); return; }
+    if (!r) { alert('Generate the plan first'); return; }
+
+    // Sheet 1: Assessments
+    const assHeader = ['Measure', 'Pre', 'Post', 'Norm (general adult)'];
+    const normsText = {
+      moca: '>=26', digitf: '6–9', digitb: '4–7', tmt_a: '20–40 s', tmt_b: '40–90 s',
+      sixmwt: '400–700 m', tug: '<10–12 s', grip: 'M:35–50kg F:20–35kg', bbs: '0–56 (higher better)'
+    };
+    const fields = [
+      ['MoCA', r.pre.moca || '', safeVal('moca_post') || '', normsText.moca],
+      ['DigitF', r.pre.digitf || '', safeVal('digitf_post') || '', normsText.digitf],
+      ['DigitB', r.pre.digitb || '', safeVal('digitb_post') || '', normsText.digitb],
+      ['TMT-A(s)', r.pre.tmt_a || '', safeVal('tmt_a_post') || '', normsText.tmt_a],
+      ['TMT-B(s)', r.pre.tmt_b || '', safeVal('tmt_b_post') || '', normsText.tmt_b],
+      ['6MWT(m)', r.pre.sixmwt || '', safeVal('sixmwt_post') || '', normsText.sixmwt],
+      ['TUG(s)', r.pre.tug || '', safeVal('tug_post') || '', normsText.tug],
+      ['Handgrip(kg)', r.pre.grip || '', safeVal('grip_post') || '', normsText.grip],
+      ['BBS', r.pre.bbs || '', safeVal('bbs_post') || '', normsText.bbs]
+    ];
+
+    const ws1 = XLSX.utils.aoa_to_sheet([assHeader, ...fields]);
+
+    // Sheet 2: Plan summary
+    const planHeader = ['Week', 'Sessions (day:type(duration) )'];
+    const planRows = window.currentReport.weeks.map(w => {
+      const txt = w.sessions.map(s => `${s.day}:${s.type}(${s.duration_min}m)`).join(' | ');
+      return [w.week, txt];
+    });
+    const ws2 = XLSX.utils.aoa_to_sheet([planHeader, ...planRows]);
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws1, 'Assessments');
+    XLSX.utils.book_append_sheet(wb, ws2, 'Plan');
+
+    XLSX.writeFile(wb, `${(r.participant || 'participant').replace(/\s+/g, '_')}_execogim.xlsx`);
+  });
+
+  // PDF export (append charts at end — charts offscreen only)
+  exportPdfBtn.addEventListener('click', async () => {
+    const r = window.currentReport;
+    if (!r) { alert('Generate the plan first'); return; }
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit: 'pt', format: 'a4' });
     const margin = 36;
     let y = 36;
 
-    // Header and participant info
-    doc.setFontSize(14);
-    doc.setTextColor(60, 22, 102);
+    // Header
+    doc.setFontSize(14); doc.setTextColor(60, 22, 102);
     doc.text('Clinical Exercise Prescription Report', margin, y); y += 18;
     doc.setFontSize(11);
     doc.text(`Participant: ${r.participant}`, margin, y);
-    doc.text(`Genotype: ${r.genotype}`, margin + 340, y);
+    doc.text(`Genotype: ${r.genotype}`, margin + 320, y);
     y += 14;
     doc.text(`DOB: ${safeVal('dob') || ''}`, margin, y);
-    doc.text(`Generated: ${new Date().toLocaleDateString()}`, margin + 340, y);
+    doc.text(`Generated: ${new Date().toLocaleDateString()}`, margin + 320, y);
     y += 18;
 
-    // Pre/post table using autoTable
-    const measuresHead = [['Measure', 'Pre', 'Post', 'Change', 'Status']];
-    const fields = [
-      ['MoCA', 'moca', false],
-      ['DigitF', 'digitf', false],
-      ['DigitB', 'digitb', false],
-      ['TMT_A(s)', 'tmt_a', true],
-      ['TMT_B(s)', 'tmt_b', true],
-      ['6MWT(m)', 'sixmwt', false],
-      ['TUG(s)', 'tug', true],
-      ['Handgrip(kg)', 'grip', false],
-      ['BBS', 'bbs', false]
+    // Pre/Post table
+    const fieldsForTable = [
+      ['Measure', 'Pre', 'Post', 'Change'],
     ];
-    const body = fields.map(f => {
-      const preV = (r.pre && r.pre[f[1]]) ? r.pre[f[1]] : '';
-      const postV = safeVal(f[1] + '_post') || '';
+    const measures = [
+      ['MoCA', r.pre.moca || '', safeVal('moca_post') || ''],
+      ['DigitF', r.pre.digitf || '', safeVal('digitf_post') || ''],
+      ['DigitB', r.pre.digitb || '', safeVal('digitb_post') || ''],
+      ['TMT-A(s)', r.pre.tmt_a || '', safeVal('tmt_a_post') || ''],
+      ['TMT-B(s)', r.pre.tmt_b || '', safeVal('tmt_b_post') || ''],
+      ['6MWT(m)', r.pre.sixmwt || '', safeVal('sixmwt_post') || ''],
+      ['TUG(s)', r.pre.tug || '', safeVal('tug_post') || ''],
+      ['Handgrip(kg)', r.pre.grip || '', safeVal('grip_post') || ''],
+      ['BBS', r.pre.bbs || '', safeVal('bbs_post') || '']
+    ];
+    const tableBody = measures.map(m => {
+      const preV = m[1] || '';
+      const postV = m[2] || '';
       let change = '';
-      if (preV !== '' && postV !== '') {
-        const numPre = parseFloat(preV);
-        const numPost = parseFloat(postV);
-        if (!isNaN(numPre) && !isNaN(numPost)) change = (numPost - numPre).toFixed(2);
+      if (preV !== '' && postV !== '' && !isNaN(parseFloat(preV)) && !isNaN(parseFloat(postV))) {
+        change = (parseFloat(postV) - parseFloat(preV)).toFixed(2);
       }
-      const status = (() => {
-        if (preV === '' || postV === '') return 'Incomplete';
-        const p = parseFloat(preV), q = parseFloat(postV);
-        if (isNaN(p) || isNaN(q)) return 'Incomplete';
-        if (p === q) return 'No change';
-        if (f[2]) return (q < p) ? 'Improved' : 'Worsened'; // lower better
-        return (q > p) ? 'Improved' : 'Worsened';
-      })();
-      return [f[0], preV, postV, change, status];
+      return [m[0], preV, postV, change];
     });
-
-    doc.autoTable({ startY: y, head: measuresHead, body: body, styles: { fontSize: 10 }, headStyles: { fillColor: [107, 63, 160] } });
+    doc.autoTable({ startY: y, head: [['Measure','Pre','Post','Change']], body: tableBody, styles:{fontSize:10}, headStyles:{fillColor:[107,63,160]} });
     y = doc.lastAutoTable ? doc.lastAutoTable.finalY + 12 : y + 120;
 
-    // 12-week plan snapshot (first half & second half)
-    const planRows = r.weeks.map(w => [ `Week ${w.week}`, w.sessions.map(s => `${s.day}: ${s.type} (${s.duration_min}m)`).join(' | ') ]);
-    doc.autoTable({ startY: y, head: [['Week', 'Sessions']], body: planRows.slice(0, 6), styles: { fontSize: 9 } });
+    // 12-week plan snapshot (two-column)
+    const planRows = r.weeks.map(w => [ `Week ${w.week}`, w.sessions.map(s => `${s.day}:${s.type}(${s.duration_min}m)`).join(' | ') ]);
+    doc.autoTable({ startY: y, head:[['Week','Sessions']], body: planRows.slice(0,6), styles:{fontSize:9} });
     if (planRows.length > 6) {
-      if (doc.lastAutoTable.finalY + 20 > 780) { doc.addPage(); y = 40; } else y = doc.lastAutoTable.finalY + 20;
-      doc.autoTable({ startY: y, head: [['Week', 'Sessions']], body: planRows.slice(6), styles: { fontSize: 9 } });
-      y = doc.lastAutoTable.finalY + 12;
+      if (doc.lastAutoTable.finalY + 20 > 760) { doc.addPage(); y = 40; } else y = doc.lastAutoTable.finalY + 20;
+      doc.autoTable({ startY: y, head:[['Week','Sessions']], body: planRows.slice(6), styles:{fontSize:9} });
+      y = doc.lastAutoTable ? doc.lastAutoTable.finalY + 12 : y + 120;
     } else {
-      y = doc.lastAutoTable.finalY + 12;
+      y = doc.lastAutoTable ? doc.lastAutoTable.finalY + 12 : y + 120;
     }
 
     // Weekly adherence summary
@@ -248,134 +291,115 @@ document.addEventListener('DOMContentLoaded', () => {
     doc.setFontSize(10); doc.text(`Total sessions: ${total} — Completed: ${done} — Adherence: ${pct}%`, margin, y);
     y += 20;
 
-    // Consent block
+    // Consent page
     doc.addPage();
     y = 60;
     doc.setFontSize(12); doc.text('Consent Form', margin, y); y += 16;
     doc.setFontSize(10);
     const consentText = 'I confirm that I have received information about the exercise program. I understand the risks and benefits and consent to participate. I confirm that I have disclosed any medical conditions to the clinician.';
-    doc.text(doc.splitTextToSize(consentText, 520), margin, y); y += 70;
+    doc.text(doc.splitTextToSize(consentText, 520), margin, y);
+    y += 40;
     doc.text('Assoc. Prof. Dr. Hazwani Ahmad Yusof @ Hanafi', margin, 760);
 
-    // --- Append charts at the very end on a new page ---
+    // Append 2 charts at very end (new page)
     doc.addPage();
     y = 40;
-    doc.setFontSize(13);
-    doc.text('Cognitive & Physical Summary (Pre vs Post)', margin, y);
-    y += 10;
+    doc.setFontSize(13); doc.text('Cognitive & Physical Summary (Pre vs Post)', margin, y); y += 10;
 
-    // If canvases missing, create them dynamically (should exist from HTML but safe-check)
-    if (!pdfRadarCanvas || !pdfBsgCanvas) {
-      // create temp canvases in DOM if not present
-      console.warn('PDF canvases not found in DOM; creating temporary canvases.');
-    }
+    const radarCanvas = document.getElementById('radarChart');
+    const bsgCanvas = document.getElementById('bsgChart');
 
-    // Helper normalize
-    const meta = { moca: [0, 30], digitf: [0, 10], digitb: [0, 10], tmt_a: [10, 150], tmt_b: [20, 300], sixmwt: [50, 800], tug: [3, 30], grip: [5, 60], bbs: [0, 56] };
-    function norm(key, val) {
-      if (val === '' || val == null) return 0;
-      const [min, max] = meta[key];
+    // Norm helper & normalization to 0-100
+    const meta = {
+      moca:[0,30], digitf:[0,10], digitb:[0,10],
+      tmt_a:[10,150], tmt_b:[20,300],
+      sixmwt:[50,800], tug:[3,30], grip:[5,60], bbs:[0,56]
+    };
+    function norm(key,val){
+      if(val===''||val==null) return 0;
+      const [min,max] = meta[key];
       const n = parseFloat(val);
       if (isNaN(n)) return 0;
       const clipped = Math.max(min, Math.min(max, n));
-      if (key.startsWith('tmt') || key === 'tug') {
-        return Math.round((1 - (clipped - min) / (max - min)) * 100);
-      } else {
-        return Math.round(((clipped - min) / (max - min)) * 100);
-      }
+      if (key.startsWith('tmt')||key==='tug') return Math.round((1 - (clipped - min)/(max - min)) * 100);
+      return Math.round(((clipped - min)/(max - min)) * 100);
     }
-
-    // Build data arrays
-    const order = ['moca', 'digitf', 'digitb', 'tmt_a', 'tmt_b', 'sixmwt', 'tug', 'grip', 'bbs'];
-    const preData = order.map(k => norm(k, (r.pre && r.pre[k]) ? r.pre[k] : ''));
+    const order = ['moca','digitf','digitb','tmt_a','tmt_b','sixmwt','tug','grip','bbs'];
+    const preData = order.map(k => norm(k, r.pre[k] || ''));
     const postData = order.map(k => norm(k, safeVal(k + '_post') || ''));
 
-    // Create radar chart (offscreen canvas)
+    // Create radar (offscreen)
     let radarChart = null, bsgChart = null;
     try {
-      const radarCtx = pdfRadarCanvas.getContext('2d');
-      radarChart = new Chart(radarCtx, {
+      const ctx = radarCanvas.getContext('2d');
+      radarChart = new Chart(ctx, {
         type: 'radar',
         data: {
-          labels: ['MoCA', 'DigitF', 'DigitB', 'TMT-A(s)', 'TMT-B(s)', '6MWT(m)', 'TUG(s)', 'Grip(kg)', 'BBS'],
+          labels: ['MoCA','DigitF','DigitB','TMT-A(s)','TMT-B(s)','6MWT(m)','TUG(s)','Grip(kg)','BBS'],
           datasets: [
-            { label: 'Pre', data: preData, backgroundColor: 'rgba(242,107,0,0.25)', borderColor: '#f26b00' },
-            { label: 'Post', data: postData, backgroundColor: 'rgba(107,63,160,0.2)', borderColor: '#6b3fa0' }
+            { label:'Pre', data: preData, backgroundColor:'rgba(242,107,0,0.25)', borderColor:'#f26b00' },
+            { label:'Post', data: postData, backgroundColor:'rgba(107,63,160,0.2)', borderColor:'#6b3fa0' }
           ]
         },
-        options: { responsive: false, animation: false, scales: { r: { min: 0, max: 100 } } }
+        options: { responsive:false, animation:false, scales:{ r:{ min:0, max:100 }} }
       });
-    } catch (err) {
-      console.warn('Radar chart creation failed', err);
-    }
+    } catch (err) { console.warn('radar create failed', err); }
 
-    // BSG mini-radar (Behavioral, Session, Genetic)
+    // BSG mini-radar
     try {
-      // Derive simple B, S, G from adherence: B = pct, S = pct+8, G = pct-8 (clamped)
-      const B = Math.max(0, Math.min(100, pct));
+      const B = pct;
       const S = Math.max(0, Math.min(100, pct + 8));
       const G = Math.max(0, Math.min(100, pct - 8));
-      const bsgCtx = pdfBsgCanvas.getContext('2d');
-      bsgChart = new Chart(bsgCtx, {
+      const ctx2 = bsgCanvas.getContext('2d');
+      bsgChart = new Chart(ctx2, {
         type: 'radar',
         data: {
-          labels: ['Behavioral', 'Session', 'Genetic'],
-          datasets: [{ label: 'BSG adherence', data: [B, S, G], backgroundColor: 'rgba(107,63,160,0.25)', borderColor: '#6b3fa0' }]
+          labels: ['Behavioral','Session','Genetic'],
+          datasets: [{ label:'BSG adherence', data:[B,S,G], backgroundColor:'rgba(107,63,160,0.25)', borderColor:'#6b3fa0' }]
         },
-        options: { responsive: false, animation: false, scales: { r: { min: 0, max: 100 } } }
+        options: { responsive:false, animation:false, scales:{ r:{ min:0, max:100 }} }
       });
-    } catch (err) {
-      console.warn('BSG chart creation failed', err);
-    }
+    } catch (err) { console.warn('bsg create failed', err); }
 
-    // Small wait to ensure charts render (Chart.js is synchronous on canvas draw but wait is safe)
+    // wait briefly
     await new Promise(res => setTimeout(res, 300));
 
-    // Convert canvases to images and place in PDF
+    // add radar image to PDF
     try {
-      const radarImg = pdfRadarCanvas.toDataURL('image/png');
+      const radarImg = radarCanvas.toDataURL('image/png');
       const imgW = 460;
-      const imgH = imgW * (pdfRadarCanvas.height / pdfRadarCanvas.width);
+      const imgH = imgW * (radarCanvas.height / radarCanvas.width);
       if (y + imgH > 780) { doc.addPage(); y = 40; }
       doc.addImage(radarImg, 'PNG', margin, y, imgW, imgH);
       y += imgH + 12;
-    } catch (err) {
-      console.warn('Failed to add radar image to PDF', err);
-    }
+    } catch (err) { console.warn('add radar image failed', err); }
 
-    // Add BSG chart below
+    // add BSG
     try {
-      doc.setFontSize(12);
-      doc.text('BSG Adherence Summary (B = Behavioral | S = Session | G = Genetic)', margin, y);
-      y += 10;
-      const bsgImg = pdfBsgCanvas.toDataURL('image/png');
-      const bsgW = 320;
-      const bsgH = bsgW * (pdfBsgCanvas.height / pdfBsgCanvas.width);
+      doc.setFontSize(12); doc.text('BSG Adherence Summary (B=Behavioral,S=Session,G=Genetic)', margin, y); y += 10;
+      const bsgImg = bsgCanvas.toDataURL('image/png');
+      const bsgW = 320; const bsgH = bsgW * (bsgCanvas.height / bsgCanvas.width);
       if (y + bsgH > 780) { doc.addPage(); y = 40; }
       doc.addImage(bsgImg, 'PNG', margin, y, bsgW, bsgH);
       y += bsgH + 8;
-    } catch (err) {
-      console.warn('Failed to add BSG image to PDF', err);
-    }
+    } catch (err) { console.warn('add bsg failed', err); }
 
-    // Destroy Chart instances to free memory
-    try { if (radarChart) radarChart.destroy(); } catch (e) { /* ignore */ }
-    try { if (bsgChart) bsgChart.destroy(); } catch (e) { /* ignore */ }
+    // cleanup charts
+    try { if (radarChart) radarChart.destroy(); } catch (e) {}
+    try { if (bsgChart) bsgChart.destroy(); } catch (e) {}
 
-    // Save pdf with participant name
+    // Save PDF
     const filename = (r.participant ? r.participant.replace(/\s+/g, '_') : 'participant') + '_execogim_report.pdf';
     doc.save(filename);
   });
 
-  // Restore last report if present
+  // Restore lastReport on load (optional)
   try {
     const last = JSON.parse(localStorage.getItem('lastReport') || 'null');
-    if (last) {
-      window.currentReport = last;
-      renderPlan(last);
-      setupWeeklyChecks(last);
-      result.style.display = 'block';
-    }
-  } catch (err) { /* ignore */ }
+    if (last) { window.currentReport = last; renderPlan(last); setupWeeklyChecks(last); resultDiv.style.display = 'block'; }
+  } catch (e) {}
 
+  // Onboard close button (if exists)
+  const closeOnboard = document.getElementById('closeOnboard');
+  if (closeOnboard) closeOnboard.onclick = () => closeOnboard.closest('.card').style.display = 'none';
 });
