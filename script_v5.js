@@ -1,5 +1,6 @@
 // =============================================
-// EXECOGIM v8.3 — Clinical Exercise Prescription App
+// EXECOGIM v8.4 — Clinical Exercise Prescription App
+// Universiti Sains Malaysia | IPPT
 // =============================================
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -19,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // --- Normative references ---
+  // --- Normative References ---
   const norms = {
     moca: "Normal: ≥26/30 (Mild impairment <26)",
     digitf: "Normal: 6–9 digits forward span.",
@@ -32,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
     bbs: "Norm: 50–56 = normal balance, <45 = increased fall risk."
   };
 
-  // --- Show modal info ---
+  // --- Show Modal Info ---
   const modalBackdrop = document.getElementById("modalBackdrop");
   const modalTitle = document.getElementById("modalTitle");
   const modalBody = document.getElementById("modalBody");
@@ -53,23 +54,23 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // --- Generate Plan Button ---
-const form = document.getElementById("inputForm");
-const generateBtn = document.getElementById("generateBtn");
+  const form = document.getElementById("inputForm");
+  const generateBtn = document.getElementById("generateBtn");
 
-// Handle both form submit and button click
-if (form) {
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-    generatePlan();
-  });
-}
-if (generateBtn) {
+  if (form) {
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      generatePlan();
+    });
+  }
+  if (generateBtn) {
     generateBtn.addEventListener("click", (e) => {
-    e.preventDefault();
-    generatePlan();
-  });
-}
+      e.preventDefault();
+      generatePlan();
+    });
+  }
 
+  // --- Generate 12-Week Plan ---
   function generatePlan() {
     const participant = document.getElementById("participant_name").value || "Participant";
     const genotype = document.getElementById("genotype").value;
@@ -82,7 +83,6 @@ if (generateBtn) {
       tug: tug_pre.value, grip: grip_pre.value, bbs: bbs_pre.value
     };
 
-    // --- Genotype-specific template ---
     const template = genotype.toLowerCase().startsWith("val")
       ? { label: "Val/Val", sessions_per_week: 4, session_length: 30, intensity: "moderate-to-vigorous" }
       : { label: "Met carrier", sessions_per_week: 5, session_length: 40, intensity: "light-to-moderate" };
@@ -96,7 +96,6 @@ if (generateBtn) {
       template.session_length = Math.round(template.session_length * 1.1);
     }
 
-    // --- 12-week plan generator ---
     const weeks = [];
     for (let wk = 1; wk <= 12; wk++) {
       const sessions = [];
@@ -131,34 +130,6 @@ if (generateBtn) {
 
   // --- Render Plan ---
   function renderPlan(report) {
-    // --- Weekly Checks ---
-function setupWeeklyChecks(report) {
-  const container = document.getElementById("weeklyChecks");
-  if (!container) return;
-  container.innerHTML = "";
-  report.weeks.forEach((w) => {
-    const card = document.createElement("div");
-    card.className = "week-card";
-    const title = document.createElement("h4");
-    title.textContent = `Week ${w.week}`;
-    card.appendChild(title);
-    const list = document.createElement("div");
-    w.sessions.forEach((s) => {
-      const btn = document.createElement("button");
-      btn.textContent = s.day;
-      btn.className = "day-btn";
-      btn.onclick = () => {
-        s.done = !s.done;
-        btn.classList.toggle("done");
-        updateAdherence();
-      };
-      list.appendChild(btn);
-    });
-    card.appendChild(list);
-    container.appendChild(card);
-  });
-}
-
     document.getElementById("result-title").textContent = `${report.participant} — ${report.genotype}`;
     document.getElementById("summary").innerHTML =
       `<p><strong>Sessions/week:</strong> ${report.template.sessions_per_week} • 
@@ -177,6 +148,34 @@ function setupWeeklyChecks(report) {
         div.appendChild(btn);
       });
       weeksDiv.appendChild(div);
+    });
+  }
+
+  // --- Weekly Checks ---
+  function setupWeeklyChecks(report) {
+    const container = document.getElementById("weeklyChecks");
+    if (!container) return;
+    container.innerHTML = "";
+    report.weeks.forEach((w) => {
+      const card = document.createElement("div");
+      card.className = "week-card";
+      const title = document.createElement("h4");
+      title.textContent = `Week ${w.week}`;
+      card.appendChild(title);
+      const list = document.createElement("div");
+      w.sessions.forEach((s) => {
+        const btn = document.createElement("button");
+        btn.textContent = s.day;
+        btn.className = "day-btn";
+        btn.onclick = () => {
+          s.done = !s.done;
+          btn.classList.toggle("done");
+          updateAdherence();
+        };
+        list.appendChild(btn);
+      });
+      card.appendChild(list);
+      container.appendChild(card);
     });
   }
 
@@ -234,7 +233,6 @@ function setupWeeklyChecks(report) {
     doc.autoTable({ startY: y, head: headers, body: rows, styles: { fontSize: 10 } });
     y = doc.lastAutoTable.finalY + 25;
 
-    // Radar Chart (only for PDF)
     const radarCanvas = document.createElement("canvas");
     radarCanvas.width = 500;
     radarCanvas.height = 500;
@@ -259,7 +257,6 @@ function setupWeeklyChecks(report) {
     doc.addImage(img, "PNG", margin, y, 520, 320);
     y += 340;
 
-    // Exercise Plan
     const planHeaders = [["Week", "Day", "Type", "Duration (min)", "Cognitive Focus"]];
     const planRows = [];
     r.weeks.forEach(w => w.sessions.forEach(s => planRows.push([`Week ${w.week}`, s.day, s.type, s.duration_min, s.cognitive || "-"])));
@@ -267,7 +264,6 @@ function setupWeeklyChecks(report) {
     doc.autoTable({ startY: y, head: planHeaders, body: planRows, styles: { fontSize: 9 } });
     y = doc.lastAutoTable.finalY + 20;
 
-    // Adherence
     let total = 0, done = 0;
     r.weeks.forEach(w => w.sessions.forEach(s => { total++; if (s.done) done++; }));
     const adherencePct = total ? Math.round((done / total) * 100) : 0;
