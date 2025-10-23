@@ -21,16 +21,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- Normative references ---
   const norms = {
-    moca: "Normal: ≥26/30. Mild impairment: 18–25. Severe: <18.",
-    digitf: "Normal: 6–9 digits forward span. <6 = reduced attention.",
-    digitb: "Normal: 4–8 digits backward span. <4 = weak working memory.",
-    tmt_a: "Normal: <40 sec. Lower is better (attention/processing speed).",
-    tmt_b: "Normal: <90 sec. Lower is better (executive function).",
-    sixmwt: "Normal: 400–700 m (age/sex dependent). <400 m = low fitness.",
-    tug: "Normal: <10 s. >13.5 s = fall risk. Lower is better.",
-    grip: "Normal: ≥30 kg (men), ≥20 kg (women). Lower = weakness.",
-    bbs: "Normal: 50–56 = good balance. <45 = fall risk."
-  };
+  moca: "Montreal Cognitive Assessment — evaluates global cognition. Normal ≥26/30.",
+  digitf: "Digit Span Forward — measures attention and immediate recall. Normal 6–9 digits.",
+  digitb: "Digit Span Backward — measures working memory. Normal 4–8 digits.",
+  tmt_a: "Trail Making Test A — measures visual attention and processing speed. Lower time = better.",
+  tmt_b: "Trail Making Test B — measures cognitive flexibility and sequencing. Lower time = better.",
+  sixmwt: "Six-Minute Walk Test — evaluates aerobic endurance. Normal 400–700 m, varies by age and sex.",
+  tug: "Timed Up and Go Test — measures mobility and balance. Normal <10 s. >13.5 s = fall risk.",
+  grip: "Handgrip Strength — assesses upper-limb strength. Normal ≥30 kg (men), ≥20 kg (women).",
+  bbs: "Berg Balance Scale — evaluates balance and stability. 50–56 = good, <45 = fall risk."
+};
 
   // --- Info Modal (tap/hover) ---
   const modalBackdrop = document.getElementById("modalBackdrop");
