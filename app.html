@@ -91,35 +91,108 @@
           </div>
         </div>
 
-        <div>
-          <h4>Pre-assessment — Cognitive</h4>
-          <label>MoCA <input id="moca_pre" type="number"><button type="button" class="info-btn" data-key="moca">ⓘ</button></label>
-          <label>DigitF <input id="digitf_pre" type="number"><button type="button" class="info-btn" data-key="digitf">ⓘ</button></label>
-          <label>DigitB <input id="digitb_pre" type="number"><button type="button" class="info-btn" data-key="digitb">ⓘ</button></label>
-          <label>TMT-A (s) <input id="tmt_a_pre" type="number"><button type="button" class="info-btn" data-key="tmt_a">ⓘ</button></label>
-          <label>TMT-B (s) <input id="tmt_b_pre" type="number"><button type="button" class="info-btn" data-key="tmt_b">ⓘ</button></label>
+        <!-- ===================================== -->
+<!-- 🧠 COGNITIVE ASSESSMENT SECTION -->
+<!-- ===================================== -->
+<h3 style="margin-top: 1em;">🧠 Cognitive Assessment</h3>
+<p style="color:#555; font-size:0.9em; margin-top:-6px;">
+  <em>Higher scores generally indicate better cognitive performance or faster processing.</em>
+</p>
 
-          <h4>Pre-assessment — Physical</h4>
-          <label>6MWT (m) <input id="sixmwt_pre" type="number"><button type="button" class="info-btn" data-key="sixmwt">ⓘ</button></label>
-          <label>TUG (s) <input id="tug_pre" type="number"><button type="button" class="info-btn" data-key="tug">ⓘ</button></label>
-          <label>Grip (kg) <input id="grip_pre" type="number"><button type="button" class="info-btn" data-key="grip">ⓘ</button></label>
-          <label>BBS (0-56) <input id="bbs_pre" type="number"><button type="button" class="info-btn" data-key="bbs">ⓘ</button></label>
-        </div>
+<div class="assessment-grid">
 
-        <div>
-          <h4>Post-assessment — Cognitive</h4>
-          <label>MoCA <input id="moca_post" type="number"><button type="button" class="info-btn" data-key="moca">ⓘ</button></label>
-          <label>DigitF <input id="digitf_post" type="number"><button type="button" class="info-btn" data-key="digitf">ⓘ</button></label>
-          <label>DigitB <input id="digitb_post" type="number"><button type="button" class="info-btn" data-key="digitb">ⓘ</button></label>
-          <label>TMT-A (s) <input id="tmt_a_post" type="number"><button type="button" class="info-btn" data-key="tmt_a">ⓘ</button></label>
-          <label>TMT-B (s) <input id="tmt_b_post" type="number"><button type="button" class="info-btn" data-key="tmt_b">ⓘ</button></label>
+  <div class="form-group">
+    <label>
+      MoCA <small>(Montreal Cognitive Assessment)</small>
+      <button class="info-btn" data-key="moca">ⓘ</button>
+    </label>
+    <input type="number" id="moca_pre" placeholder="Pre (e.g. 26)">
+    <input type="number" id="moca_post" placeholder="Post (e.g. 28)">
+  </div>
 
-          <h4>Post-assessment — Physical</h4>
-          <label>6MWT (m) <input id="sixmwt_post" type="number"><button type="button" class="info-btn" data-key="sixmwt">ⓘ</button></label>
-          <label>TUG (s) <input id="tug_post" type="number"><button type="button" class="info-btn" data-key="tug">ⓘ</button></label>
-          <label>Grip (kg) <input id="grip_post" type="number"><button type="button" class="info-btn" data-key="grip">ⓘ</button></label>
-          <label>BBS (0-56) <input id="bbs_post" type="number"><button type="button" class="info-btn" data-key="bbs">ⓘ</button></label>
-        </div>
+  <div class="form-group">
+    <label>
+      DigitF <small>(Digit Span Forward)</small>
+      <button class="info-btn" data-key="digitf">ⓘ</button>
+    </label>
+    <input type="number" id="digitf_pre" placeholder="Pre (e.g. 7)">
+    <input type="number" id="digitf_post" placeholder="Post (e.g. 8)">
+  </div>
+
+  <div class="form-group">
+    <label>
+      DigitB <small>(Digit Span Backward)</small>
+      <button class="info-btn" data-key="digitb">ⓘ</button>
+    </label>
+    <input type="number" id="digitb_pre" placeholder="Pre (e.g. 5)">
+    <input type="number" id="digitb_post" placeholder="Post (e.g. 6)">
+  </div>
+
+  <div class="form-group">
+    <label>
+      TMT-A (s) <small>(Trail Making Test A)</small>
+      <button class="info-btn" data-key="tmt_a">ⓘ</button>
+    </label>
+    <input type="number" id="tmt_a_pre" placeholder="Pre (e.g. 78)">
+    <input type="number" id="tmt_a_post" placeholder="Post (e.g. 60)">
+  </div>
+
+  <div class="form-group">
+    <label>
+      TMT-B (s) <small>(Trail Making Test B)</small>
+      <button class="info-btn" data-key="tmt_b">ⓘ</button>
+    </label>
+    <input type="number" id="tmt_b_pre" placeholder="Pre (e.g. 150)">
+    <input type="number" id="tmt_b_post" placeholder="Post (e.g. 120)">
+  </div>
+</div>
+
+<!-- ===================================== -->
+<!-- 💪 PHYSICAL ASSESSMENT SECTION -->
+<!-- ===================================== -->
+<h3 style="margin-top: 1.5em;">💪 Physical Assessment</h3>
+<p style="color:#555; font-size:0.9em; margin-top:-6px;">
+  <em>Lower times or higher distances/strength indicate improvement in physical performance.</em>
+</p>
+
+<div class="assessment-grid">
+
+  <div class="form-group">
+    <label>
+      6MWT (m) <small>(Six-Minute Walk Test)</small>
+      <button class="info-btn" data-key="sixmwt">ⓘ</button>
+    </label>
+    <input type="number" id="sixmwt_pre" placeholder="Pre (e.g. 480)">
+    <input type="number" id="sixmwt_post" placeholder="Post (e.g. 520)">
+  </div>
+
+  <div class="form-group">
+    <label>
+      TUG (s) <small>(Timed Up and Go Test)</small>
+      <button class="info-btn" data-key="tug">ⓘ</button>
+    </label>
+    <input type="number" id="tug_pre" placeholder="Pre (e.g. 9.2)">
+    <input type="number" id="tug_post" placeholder="Post (e.g. 8.5)">
+  </div>
+
+  <div class="form-group">
+    <label>
+      Grip (kg) <small>(Handgrip Strength)</small>
+      <button class="info-btn" data-key="grip">ⓘ</button>
+    </label>
+    <input type="number" id="grip_pre" placeholder="Pre (e.g. 28)">
+    <input type="number" id="grip_post" placeholder="Post (e.g. 32)">
+  </div>
+
+  <div class="form-group">
+    <label>
+      BBS <small>(Berg Balance Scale)</small>
+      <button class="info-btn" data-key="bbs">ⓘ</button>
+    </label>
+    <input type="number" id="bbs_pre" placeholder="Pre (e.g. 52)">
+    <input type="number" id="bbs_post" placeholder="Post (e.g. 54)">
+  </div>
+</div>
 
         <div style="grid-column:1/-1;display:flex;gap:12px;align-items:center;margin-top:10px;">
           <button id="generateBtn" type="submit" class="btn">Generate 12-Week Plan</button>
