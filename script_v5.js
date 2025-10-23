@@ -283,9 +283,46 @@ document.addEventListener("DOMContentLoaded", () => {
     const headers = [["Measure", "Pre", "Post", "Change", "Status"]];
     const rows = [];
     const lowerIsBetter = ["tmt_a", "tmt_b", "tug"];
-    Object.keys(r.pre).forEach((k) => {
-      const diff = r.post[k] - r.pre[k];
-      let status = "No change";
+   // --- Full Test Names Map for PDF ---
+const fullNames = {
+  moca: "Montreal Cognitive Assessment (MoCA)",
+  digitf: "Digit Span Forward (DigitF)",
+  digitb: "Digit Span Backward (DigitB)",
+  tmt_a: "Trail Making Test A (TMT-A)",
+  tmt_b: "Trail Making Test B (TMT-B)",
+  sixmwt: "Six-Minute Walk Test (6MWT)",
+  tug: "Timed Up and Go Test (TUG)",
+  grip: "Handgrip Strength (Grip)",
+  bbs: "Berg Balance Scale (BBS)"
+};
+
+// --- Status Logic (Improvement / Worsening) ---
+Object.keys(r.pre).forEach(k => {
+  const diff = r.post[k] - r.pre[k];
+  let status = "No change";
+
+  const lowerIsBetter = ["tmt_a", "tmt_b", "tug"];
+
+  if (lowerIsBetter.includes(k)) {
+    if (diff < 0) status = "Improved (lower = better)";
+    else if (diff > 0) status = "Worsened (higher = slower)";
+  } else {
+    if (diff > 0) status = "Improved (higher = better)";
+    else if (diff < 0) status = "Worsened (lower = decline)";
+  }
+
+  // ✅ Display both abbreviation and full test name
+  const testName = fullNames[k] || k.toUpperCase();
+
+  rows.push([
+    testName,
+    r.pre[k],
+    r.post[k],
+    diff > 0 ? "+" + diff : diff,
+    status
+  ]);
+});
+
       if (lowerIsBetter.includes(k)) {
         if (diff < 0) status = "Improved";
         else if (diff > 0) status = "Worsened";
