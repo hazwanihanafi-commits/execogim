@@ -139,35 +139,57 @@ document.addEventListener("DOMContentLoaded", () => {
   // ======================================================
   // RENDER PLAN
   // ======================================================
-  function renderPlan(report){
-    document.getElementById("result-title").textContent=`${report.participant} — ${report.genotype}`;
-    document.getElementById("summary").innerHTML=`
-      <p><strong>Sessions/week:</strong> ${report.template.sessions_per_week} • 
-      <strong>Session length:</strong> ${Math.round(report.template.session_length)} min • 
-      <strong>Intensity:</strong> ${report.template.intensity}</p>
-      <p><strong>Genotype Info:</strong> ${report.genotypeInfo}</p>
-      <p><strong>Fitness Level:</strong> ${report.fitnessLevels[report.fitness]}</p>
-      <p class="instruction">✔️ Tap any exercise to mark it done — progress updates automatically.</p>`;
-    weeksDiv.innerHTML="";
-    report.weeks.forEach((w)=>{
-      const div=document.createElement("div");
-      div.className="week-card";
-      div.innerHTML=`<strong>Week ${w.week}</strong><br>`;
-      w.sessions.forEach((s)=>{
-        const btn=document.createElement("button");
-        btn.textContent=s.type==="Rest"?`${s.day}: Rest`:`${s.day}: ${s.type} — ${s.duration_min} min (${s.cognitive})`;
-        btn.className="day-btn";
-        if(s.done)btn.classList.add("done");
-        btn.addEventListener("click",()=>{
-          s.done=!s.done;
-          btn.classList.toggle("done");
-          updateAdherence();
-        });
-        div.appendChild(btn);
+  function renderPlan(report) {
+  const resultDiv = document.getElementById("result");
+  const title = document.getElementById("result-title");
+  const summaryDiv = document.getElementById("summary");
+  const weeksDiv = document.getElementById("weeks");
+
+  // Make result visible
+  resultDiv.style.display = "block";
+
+  // --- Title and Summary ---
+  title.textContent = `Participant — ${report.genotype}`;
+
+  summaryDiv.innerHTML = `
+    <p><strong>Sessions/week:</strong> ${report.template.sessions_per_week} • 
+    <strong>Session length:</strong> ${Math.round(report.template.session_length)} min • 
+    <strong>Intensity:</strong> ${report.template.intensity}</p>
+
+    <p><strong>Genotype Info:</strong> ${report.genotypeInfo}</p>
+
+    <p><strong>Fitness Level:</strong> ${report.fitnessLevels[report.fitness]}</p>
+
+    <p class="instruction">✔️ Tap any exercise to mark it done — progress updates automatically.</p>
+  `;
+
+  // --- Weekly Plan Cards ---
+  weeksDiv.innerHTML = "";
+  report.weeks.forEach((w) => {
+    const div = document.createElement("div");
+    div.className = "week-card";
+    div.innerHTML = `<strong>Week ${w.week}</strong><br>`;
+
+    w.sessions.forEach((s) => {
+      const btn = document.createElement("button");
+      btn.textContent =
+        s.type === "Rest"
+          ? `${s.day}: Rest`
+          : `${s.day}: ${s.type} — ${s.duration_min} min (${s.cognitive})`;
+      btn.className = "day-btn";
+      if (s.done) btn.classList.add("done");
+      btn.addEventListener("click", () => {
+        s.done = !s.done;
+        btn.classList.toggle("done");
+        updateAdherence();
       });
-      weeksDiv.appendChild(div);
+      div.appendChild(btn);
     });
-  }
+
+    weeksDiv.appendChild(div);
+  });
+}
+
 
   function getValues(type){
     const ids=["moca","digitf","digitb","tmt_a","tmt_b","sixmwt","tug","grip","bbs"];
