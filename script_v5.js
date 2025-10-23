@@ -98,7 +98,8 @@ document.addEventListener("DOMContentLoaded", () => {
           else if (d === "Sat") { type = "Light Aerobic + Memory"; dur = 30; cog = "Memory Recall"; }
         }
         const prog = Math.floor((wk - 1) / 4) * 2;
-        sessions.push({ day: d, type, duration_min: Math.round(dur + prog), cognitive: cog, done: false });
+        const duration = type === "Rest" ? 0 : Math.round(dur + prog);
+        sessions.push({ day: d, type, duration_min: duration, cognitive: cog, done: false });
       });
       weeks.push({ week: wk, sessions });
     }
