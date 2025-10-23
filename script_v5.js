@@ -280,16 +280,27 @@ document.addEventListener("DOMContentLoaded", () => {
     const rows = [];
     const lowerIsBetter = ["tmt_a", "tmt_b", "tug"];
 
-    Object.keys(r.pre).forEach(k => {
-      const diff = r.post[k] - r.pre[k];
-      let status = "No change";
-      if (lowerIsBetter.includes(k)) {
-  if (diff < 0) status = "Improved ↑";
-  else if (diff > 0) status = "Worsened ↓";
-} else {
-  if (diff > 0) status = "Improved ↑";
-  else if (diff < 0) status = "Worsened ↓";
-}
+   Object.keys(r.pre).forEach(k => {
+  const diff = r.post[k] - r.pre[k];
+  let status = "No change";
+
+  // Use safe ASCII indicators for PDF (no Unicode arrows)
+  if (lowerIsBetter.includes(k)) {
+    if (diff < 0) status = "Improved (better ↓)";
+    else if (diff > 0) status = "Worsened (↑ slower)";
+  } else {
+    if (diff > 0) status = "Improved (↑ higher)";
+    else if (diff < 0) status = "Worsened (↓ lower)";
+  }
+
+  rows.push([
+    k.toUpperCase(),
+    r.pre[k],
+    r.post[k],
+    diff > 0 ? "+" + diff : diff,
+    status
+  ]);
+});
 
       rows.push([k.toUpperCase(), r.pre[k], r.post[k], diff > 0 ? "+" + diff : diff, status]);
     });
