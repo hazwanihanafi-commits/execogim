@@ -1,280 +1,213 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>EXECOGIM — Clinical Exercise Prescription App</title>
-
-<!-- ✅ PWA Manifest & Theme -->
-<link rel="manifest" href="/manifest.json">
-<link rel="icon" type="image/png" href="icons/icon-192.png">
-<meta name="theme-color" content="#6b3fa0">
-
-<!-- ✅ Service Worker -->
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/service-worker.js')
-      .then(() => console.log('✅ Service Worker registered'))
-      .catch(err => console.log('❌ Service Worker failed:', err));
-  }
-</script>
-
-<!-- ✅ Libraries -->
-<link rel="stylesheet" href="style.css">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
-<style>
-  :root{--purple:#6b3fa0;--orange:#f26b00}
-  body{margin:0;background:#faf7fc;color:#222;font-family:Inter,Segoe UI,Arial,sans-serif}
-  .banner{background:linear-gradient(90deg,var(--purple),#5b21b6 60%,var(--orange));color:#fff;padding:20px;text-align:center}
-  .banner h1{margin:0;font-size:1.8rem}
-  .subtitle{margin:4px 0 0;opacity:.95}
-  .container{max-width:1100px;margin:20px auto;padding:0 16px}
-  .card{background:#fff;border-radius:12px;padding:18px;margin-bottom:16px;box-shadow:0 6px 20px rgba(107,63,160,0.05)}
-  .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
-  label{display:block;font-weight:600;margin-bottom:6px;color:#2b1b3a}
-  input,select{width:100%;padding:8px;border-radius:8px;border:1px solid #e9e6f0;background:#fff}
-  h2{color:var(--purple);margin:0 0 10px}
-  .btn{background:linear-gradient(90deg,var(--purple),var(--orange));color:#fff;padding:10px 14px;border:none;border-radius:8px;cursor:pointer;font-weight:700}
-  .btn.ghost{background:transparent;border:2px solid var(--purple);color:var(--purple)}
-  .info-btn{background:#eef0ff;border:0;border-radius:50%;width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;color:var(--purple);cursor:pointer;margin-left:6px}
-  .progress-bar{height:12px;background:#f1edf6;border-radius:12px;overflow:hidden;margin-top:6px}
-  .progress-fill{height:100%;background:linear-gradient(90deg,var(--orange),var(--purple));width:0%;transition:width .3s}
-  footer.footer{padding:16px;text-align:center;color:#5b3b6d;margin-top:12px}
-  .slider{width:100%;margin-top:4px}
-  #fitnessLabel{font-size:0.9em;color:#555;margin-top:4px}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EXECOGIM — Clinical Exercise Prescription App</title>
+  <link rel="manifest" href="manifest.json" />
+  <style>
+    body {
+      font-family: "Inter", sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f7f6fc;
+      color: #222;
+    }
+    header {
+      background: #3c1666;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.4rem;
+      font-weight: bold;
+    }
+    main {
+      padding: 20px;
+      max-width: 950px;
+      margin: auto;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    }
+    label {
+      font-weight: 600;
+      margin-top: 10px;
+      display: block;
+    }
+    input {
+      width: 100%;
+      padding: 6px;
+      margin: 4px 0 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    small.desc {
+      display: block;
+      color: #666;
+      font-size: 0.8em;
+      margin-bottom: 8px;
+    }
+    button {
+      background: #3c1666;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 16px;
+      margin: 5px 5px 10px 0;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    button:hover {
+      background: #522488;
+    }
+    #weeks .week-card {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 8px;
+      background: #faf9ff;
+    }
+    .day-btn {
+      margin: 2px;
+      padding: 6px 8px;
+      border: 1px solid #ccc;
+      background: #f9f9f9;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .day-btn.done {
+      background: #b6f1b0;
+      border-color: #6ec86e;
+      font-weight: 600;
+    }
+    #adherenceBarContainer {
+      background: #e7e7ef;
+      border-radius: 10px;
+      height: 14px;
+      margin: 10px 0;
+      overflow: hidden;
+    }
+    #adherenceBar {
+      height: 14px;
+      background: #6b3fa0;
+      width: 0%;
+      transition: width 0.3s;
+    }
+    footer {
+      text-align: center;
+      font-size: 0.85rem;
+      margin-top: 20px;
+      color: #777;
+    }
+  </style>
 </head>
-
 <body>
-  <header class="banner">
-    <h1>EXECOGIM</h1>
-    <p class="subtitle">Clinical Exercise Prescription App — Universiti Sains Malaysia | IPPT</p>
-  </header>
+  <header>EXECOGIM — Clinical Exercise Prescription App</header>
 
-  <main class="container">
-    <!-- Welcome -->
-    <section class="card">
-      <h2>Welcome — Quick Tour</h2>
-      <p>This app generates genotype-informed 12-week exercise plans (BDNF Val66Met) and allows export of reports (PDF, Excel) for clinical or research purposes.</p>
-      <button id="closeOnboard" class="btn ghost">Close tour</button>
-    </section>
+  <main>
+    <form id="inputForm">
+      <h2>Participant Details</h2>
+      <label for="participant_name">Participant Name</label>
+      <input id="participant_name" placeholder="Enter participant name" />
 
-    <!-- Participant Info -->
-    <section class="card">
-      <h2>Participant & Assessments</h2>
-      <form id="inputForm" class="form-grid">
-        <div>
-          <label for="participant_name">Participant name</label>
-          <input id="participant_name" type="text" placeholder="Full name">
+      <label for="genotype">Genotype</label>
+      <select id="genotype">
+        <option>Val/Val</option>
+        <option>Val/Met</option>
+        <option>Met/Met</option>
+      </select>
 
-          <label for="age">Age</label>
-          <input id="age" type="number" min="12" max="120" value="65">
+      <label for="fitness_slider">Fitness Level (1–5)</label>
+      <input type="number" id="fitness_slider" min="1" max="5" value="3" />
 
-          <label for="genotype">Genotype</label>
-          <select id="genotype">
-            <option value="Val/Val">Val/Val</option>
-            <option value="Met">Met carrier</option>
-          </select>
+      <h2>Pre-Assessment (Cognitive & Physical)</h2>
+      <label for="moca_pre">MoCA (Montreal Cognitive Assessment)</label>
+      <input id="moca_pre" type="number" placeholder="Pre" />
+      <label for="moca_post">MoCA (Post)</label>
+      <input id="moca_post" type="number" placeholder="Post" />
 
-          <label for="fitness_slider">Fitness level</label>
-          <input id="fitness_slider" type="range" min="1" max="5" value="3" step="1" class="slider">
-          <div id="fitnessLabel"><strong>3 — Moderate:</strong> Active lifestyle, exercises occasionally.</div>
+      <label for="digitf_pre">DigitF (Forward)</label>
+      <input id="digitf_pre" type="number" />
+      <label for="digitf_post">DigitF (Post)</label>
+      <input id="digitf_post" type="number" />
 
-          <p style="font-size:0.85em; color:#777; margin-top:6px;">
-            <em>1 = Low (sedentary) • 2 = Below average • 3 = Moderate (active) • 4 = Good (regular exerciser) • 5 = Excellent (athletic/highly active)</em>
-          </p>
+      <label for="digitb_pre">DigitB (Backward)</label>
+      <input id="digitb_pre" type="number" />
+      <label for="digitb_post">DigitB (Post)</label>
+      <input id="digitb_post" type="number" />
 
-          <label>Constraints</label>
-          <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:6px;">
-            <label><input type="checkbox" name="constraint" value="knee"> Knee</label>
-            <label><input type="checkbox" name="constraint" value="shoulder"> Shoulder</label>
-            <label><input type="checkbox" name="constraint" value="hypertension"> Hypertension</label>
-            <label><input type="checkbox" name="constraint" value="balance"> Balance</label>
-          </div>
-        </div>
+      <label for="tmt_a_pre">TMT-A (Trail Making Test A)</label>
+      <input id="tmt_a_pre" type="number" />
+      <label for="tmt_a_post">TMT-A (Post)</label>
+      <input id="tmt_a_post" type="number" />
 
-        <!-- ======================= -->
-        <!-- 🧠 Cognitive Assessments -->
-        <!-- ======================= -->
-        <div class="assessment-grid">
-          <div class="form-group">
-            <label>MoCA <button class="info-btn" data-key="moca">ⓘ</button></label>
-            <input type="number" id="moca_pre" placeholder="Pre (e.g. 26)">
-            <input type="number" id="moca_post" placeholder="Post (e.g. 28)">
-          </div>
+      <label for="tmt_b_pre">TMT-B (Trail Making Test B)</label>
+      <input id="tmt_b_pre" type="number" />
+      <label for="tmt_b_post">TMT-B (Post)</label>
+      <input id="tmt_b_post" type="number" />
 
-          <div class="form-group">
-            <label>DigitF <button class="info-btn" data-key="digitf">ⓘ</button></label>
-            <input type="number" id="digitf_pre" placeholder="Pre (e.g. 7)">
-            <input type="number" id="digitf_post" placeholder="Post (e.g. 8)">
-          </div>
+      <h2>Pre-Assessment (Physical)</h2>
+      <label for="sixmwt_pre">6MWT (Six-Minute Walk Test)</label>
+      <input id="sixmwt_pre" type="number" />
+      <label for="sixmwt_post">6MWT (Post)</label>
+      <input id="sixmwt_post" type="number" />
 
-          <div class="form-group">
-            <label>DigitB <button class="info-btn" data-key="digitb">ⓘ</button></label>
-            <input type="number" id="digitb_pre" placeholder="Pre (e.g. 5)">
-            <input type="number" id="digitb_post" placeholder="Post (e.g. 6)">
-          </div>
+      <label for="tug_pre">TUG (Timed Up & Go)</label>
+      <input id="tug_pre" type="number" />
+      <label for="tug_post">TUG (Post)</label>
+      <input id="tug_post" type="number" />
 
-          <div class="form-group">
-            <label>TMT-A (s) <button class="info-btn" data-key="tmt_a">ⓘ</button></label>
-            <input type="number" id="tmt_a_pre" placeholder="Pre (e.g. 78)">
-            <input type="number" id="tmt_a_post" placeholder="Post (e.g. 60)">
-          </div>
+      <label for="grip_pre">Grip Strength (kg)</label>
+      <input id="grip_pre" type="number" />
+      <label for="grip_post">Grip (Post)</label>
+      <input id="grip_post" type="number" />
 
-          <div class="form-group">
-            <label>TMT-B (s) <button class="info-btn" data-key="tmt_b">ⓘ</button></label>
-            <input type="number" id="tmt_b_pre" placeholder="Pre (e.g. 150)">
-            <input type="number" id="tmt_b_post" placeholder="Post (e.g. 120)">
-          </div>
-        </div>
+      <label for="bbs_pre">BBS (Berg Balance Scale)</label>
+      <input id="bbs_pre" type="number" />
+      <label for="bbs_post">BBS (Post)</label>
+      <input id="bbs_post" type="number" />
 
-        <!-- ======================= -->
-        <!-- 💪 Physical Assessments -->
-        <!-- ======================= -->
-        <div class="assessment-grid">
-          <div class="form-group">
-            <label>6MWT (m) <button class="info-btn" data-key="sixmwt">ⓘ</button></label>
-            <input type="number" id="sixmwt_pre" placeholder="Pre (e.g. 480)">
-            <input type="number" id="sixmwt_post" placeholder="Post (e.g. 520)">
-          </div>
+      <button type="submit">Generate Plan</button>
+    </form>
 
-          <div class="form-group">
-            <label>TUG (s) <button class="info-btn" data-key="tug">ⓘ</button></label>
-            <input type="number" id="tug_pre" placeholder="Pre (e.g. 9.2)">
-            <input type="number" id="tug_post" placeholder="Post (e.g. 8.5)">
-          </div>
+    <section id="result" style="display:none;">
+      <h2 id="result-title"></h2>
+      <div id="summary"></div>
 
-          <div class="form-group">
-            <label>Grip (kg) <button class="info-btn" data-key="grip">ⓘ</button></label>
-            <input type="number" id="grip_pre" placeholder="Pre (e.g. 28)">
-            <input type="number" id="grip_post" placeholder="Post (e.g. 32)">
-          </div>
+      <h3>Assessment Summary (Pre vs Post)</h3>
+      <table id="summaryTable" border="1" cellspacing="0" cellpadding="6" width="100%"></table>
 
-          <div class="form-group">
-            <label>BBS <button class="info-btn" data-key="bbs">ⓘ</button></label>
-            <input type="number" id="bbs_pre" placeholder="Pre (e.g. 52)">
-            <input type="number" id="bbs_post" placeholder="Post (e.g. 54)">
-          </div>
-        </div>
-
-        <div style="grid-column:1/-1;display:flex;gap:12px;align-items:center;margin-top:10px;">
-          <button id="generateBtn" type="submit" class="btn">Generate 12-Week Plan</button>
-          <button id="exportPdf" type="button" class="btn">Export Report (PDF)</button>
-          <button id="downloadXlsx" type="button" class="btn ghost">Download Excel (.xlsx)</button>
-        </div>
-      </form>
-    </section>
-
-    <!-- =======================
-         Assessment Summary
-    ======================= -->
-    <section class="card">
-      <h2>Assessment Summary (Pre vs Post)</h2>
-      <p>This summary shows the raw change and status for each assessment parameter.</p>
-      <table id="summaryTable" class="result-table" style="width:100%;border-collapse:collapse;margin-top:10px;border:1px solid #ccc;">
-        <thead>
-          <tr>
-            <th style="background:#6b3fa0;color:#fff;padding:6px;">Measure</th>
-            <th style="background:#6b3fa0;color:#fff;padding:6px;">Pre</th>
-            <th style="background:#6b3fa0;color:#fff;padding:6px;">Post</th>
-            <th style="background:#6b3fa0;color:#fff;padding:6px;">Change</th>
-            <th style="background:#6b3fa0;color:#fff;padding:6px;">Status</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-
-      <h3 style="margin-top:1em;">🧠 Cognitive Assessment</h3>
-      <p style="color:#555;font-size:0.9em;margin-top:-6px;">
-        <em>Higher scores generally indicate better cognitive performance or faster processing.</em>
-      </p>
-
-      <h3 style="margin-top:1.5em;">💪 Physical Assessment</h3>
-      <p style="color:#555;font-size:0.9em;margin-top:-6px;">
-        <em>Lower times or higher distances/strength indicate improvement in physical performance.</em>
-      </p>
-    </section>
-
-    <!-- =======================
-         Exercise Plan
-    ======================= -->
-    <section class="card">
-      <h2>12-Week Exercise Plan</h2>
-      <div id="result" style="display:none;">
-        <h3 id="result-title"></h3>
-        <div id="summary"></div>
+      <div style="margin-top:20px;">
+        <h3>12-Week Exercise Plan</h3>
         <div id="weeks"></div>
       </div>
-    </section>
 
-    <!-- =======================
-         Weekly Progress & Adherence
-    ======================= -->
-    <section class="card">
-      <h2>Weekly Progress & Adherence</h2>
-      <p>Mark completed sessions each week to track adherence.</p>
-      <div id="weeklyChecks"></div>
-      <div style="margin-top:12px;">
-        <label for="adherenceBar">Overall adherence</label>
-        <div class="progress-bar"><div id="adherenceBar" class="progress-fill"></div></div>
-        <div id="adherencePct" style="margin-top:4px;">0%</div>
+      <div id="adherenceBarContainer">
+        <div id="adherenceBar"></div>
+      </div>
+      <div id="adherencePct">0% completed</div>
+
+      <div style="margin-top:20px;">
+        <button id="exportPdf">📄 Download PDF</button>
+        <button id="downloadXlsx">📊 Download Excel</button>
       </div>
     </section>
+
+    <div id="installContainer" style="display:none; text-align:center; margin-top:20px;">
+      <p>You can install EXECOGIM as an app!</p>
+      <button id="installBtn">Install App</button>
+    </div>
   </main>
 
-  <!-- =======================
-       Footer
-  ======================= -->
-  <footer class="footer">
-    <div>Assoc. Prof. Dr. Hazwani Ahmad Yusof @ Hanafi — IPPT, Universiti Sains Malaysia</div>
-  </footer>
+  <footer>© 2025 Universiti Sains Malaysia | EXECOGIM Clinical Exercise App</footer>
 
-  <!-- =======================
-       Modal for Normative Info
-  ======================= -->
-  <div id="modalBackdrop" class="modal-backdrop">
-    <div class="modal-card">
-      <button id="modalClose" class="modal-close">✕</button>
-      <h3 id="modalTitle"></h3>
-      <div id="modalBody" style="margin-top:8px;font-size:14px;color:#333;"></div>
-    </div>
-  </div>
+  <!-- Required Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-  <!-- =======================
-       PWA Install Prompt
-  ======================= -->
-  <div id="installContainer">
-    <p style="margin:0 0 8px;font-weight:600;font-size:15px;">
-      📲 Add <strong>EXECOGIM</strong> to your home screen
-    </p>
-    <button id="installBtn" class="installBtn">Install App</button>
-    <p style="font-size:13px;color:#666;margin-top:6px;">
-      💡 On iPhone/iPad: Tap <strong>Share</strong> → <strong>Add to Home Screen</strong>
-    </p>
-  </div>
-
-  <!-- ✅ Main Script -->
-  <script src="script_v5.js"></script>
-
-  <!-- ✅ Fitness Level Label Script -->
-  <script>
-    const fitnessSlider = document.getElementById("fitness_slider");
-    const fitnessLabel = document.getElementById("fitnessLabel");
-    const fitnessDescriptions = {
-      1: "Low — Sedentary or limited activity.",
-      2: "Below average — Occasional exercise.",
-      3: "Moderate — Active lifestyle, exercises occasionally.",
-      4: "Good — Regular exerciser.",
-      5: "Excellent — Athletic or highly active individual."
-    };
-    fitnessSlider.addEventListener("input", () => {
-      const val = fitnessSlider.value;
-      fitnessLabel.innerHTML = `<strong>${val} — ${fitnessDescriptions[val]}</strong>`;
-    });
-  </script>
+  <!-- Your JavaScript -->
+  <script src="app.js"></script>
 </body>
 </html>
