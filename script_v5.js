@@ -302,9 +302,6 @@ document.addEventListener("DOMContentLoaded", () => {
   ]);
 });
 
-      rows.push([k.toUpperCase(), r.pre[k], r.post[k], diff > 0 ? "+" + diff : diff, status]);
-    });
-
     doc.autoTable({
       startY: y,
       head: headers,
