@@ -283,10 +283,12 @@ function setupWeeklyChecks(report) {
   updateAdherence();
 }
 
-  // ======================================================
-  // PDF EXPORT
-  // ======================================================
-  document.getElementById("exportPdf").addEventListener("click", async () => {
+ // ======================================================
+// PDF EXPORT (with Radar Chart + Summary)
+// ======================================================
+const pdfBtn = document.getElementById("exportPdf");
+if (pdfBtn) {
+  pdfBtn.addEventListener("click", async () => {
     const r = window.currentReport;
     if (!r) return alert("Generate a plan first.");
 
@@ -295,12 +297,14 @@ function setupWeeklyChecks(report) {
     const margin = 36;
     let y = 36;
 
+    // --- Header ---
     doc.setFont("helvetica", "bold");
     doc.setFontSize(16);
     doc.setTextColor(60, 22, 102);
     doc.text("Clinical Exercise Prescription Report", margin, y);
-    y += 30;
+    y += 28;
 
+    // --- Participant Info ---
     doc.setFont("helvetica", "normal");
     doc.setFontSize(11);
     doc.text(`Participant: ${r.participant}`, margin, y);
@@ -308,9 +312,10 @@ function setupWeeklyChecks(report) {
     y += 20;
     doc.text(`Fitness Level: ${r.fitnessLevels[r.fitness]}`, margin, y);
     y += 20;
-    doc.text(`Generated: ${new Date().toLocaleDateString()}`, margin, y);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, margin, y);
     y += 25;
 
+    // --- Assessment Table ---
     const headers = [["Measure", "Pre", "Post", "Change", "Status"]];
     const rows = [];
     const lowerIsBetter = ["tmt_a", "tmt_b", "tug"];
@@ -336,7 +341,13 @@ function setupWeeklyChecks(report) {
         if (diff > 0) status = "Improved (higher = better)";
         else if (diff < 0) status = "Worsened (lower = decline)";
       }
-      rows.push([fullNames[k] || k.toUpperCase(), r.pre[k], r.post[k], diff > 0 ? "+" + diff : diff, status]);
+      rows.push([
+        fullNames[k] || k.toUpperCase(),
+        r.pre[k],
+        r.post[k],
+        diff > 0 ? "+" + diff : diff,
+        status
+      ]);
     });
 
     doc.autoTable({
@@ -349,8 +360,171 @@ function setupWeeklyChecks(report) {
       headStyles: { fillColor: [60, 22, 102], textColor: 255, fontStyle: "bold" }
     });
 
+    y = doc.lastAutoTable.finalY + 30;
+
+    // ======================================================
+    // RADAR CHART (Cognitive vs Physical)
+    // ======================================================
+    const radarCanvas = document.getElementById("radarChart");
+    const ctxRadar = radarCanvas.getContext("2d");
+
+    // Create radar chart dynamically
+    const radarChart = new Chart(ctxRadar, {
+      type: "radar",
+      data: {
+        labels: ["MoCA", "DigitF", "DigitB", "6MWT", "TUG", "Grip", "BBS"],
+        datasets: [
+          {
+            label: "Pre",
+            data: [
+              r.pre.moca,
+              r.pre.digitf,
+              r.pre.digitb,
+              r.pre.sixmwt,
+              r.pre.tug,
+              r.pre.grip,
+              r.pre.bbs
+            ],
+            borderWidth: 2,
+            borderColor: "rgba(255,99,132,0.9)",
+            backgroundColor: "rgba(255,99,132,0.2)"
+          },
+          {
+            label: "Post",
+            data: [
+              r.post.moca,
+              r.post.digitf,
+              r.post.digitb,
+              r.post.sixmwt,
+              r.post.tug,
+              r.post.grip,
+              r.post.bbs
+            ],
+            borderWidth: 2,
+            borderColor: "rgba(54,162,235,0.9)",
+            backgroundColor: "rgba(54,162,235,0.2)"
+          }
+        ]
+      },
+      options: {
+        responsive: false,
+        scales: { r: { min: 0, grid: { color: "rgba(0,0,0,0.1)" } } },
+        plugins: { legend: { position: "top" } }
+      }
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 500)); // wait for chart draw
+
+    const radarImg = radarCanvas.toDataURL("image/png", 1.0);
+    doc.addImage(radarImg, "PNG", margin, y, 520, 400);
+    radarChart.destroy();
+
+    y += 420;
+
+    // ======================================================
+    // ADHERENCE SUMMARY
+    // ======================================================
+    const total = r.weeks.reduce((sum, w) => sum + w.sessions.length, 0);
+    const done = r.weeks.reduce(
+      (sum, w) => sum + w.sessions.filter((s) => s.done).length,
+      0
+    );
+    const pct = Math.round((done / total) * 100);
+
+    doc.setFontSize(12);
+    doc.text(
+      `Adherence Summary: ${done}/${total} sessions completed (${pct}%)`,
+      margin,
+      y + 20
+    );
+
+    // --- Save PDF ---
     doc.save(`${r.participant.replace(/\s+/g, "_")}_report.pdf`);
   });
+}
+
+// ======================================================
+// EXCEL EXPORT (.xlsx)
+// ======================================================
+const xlsxBtn = document.getElementById("downloadXlsx");
+if (xlsxBtn) {
+  xlsxBtn.addEventListener("click", () => {
+    const r = window.currentReport;
+    if (!r) return alert("Generate a plan first before downloading Excel.");
+
+    // Prepare worksheet data
+    const sheetData = [
+      ["Clinical Exercise Prescription Report"],
+      ["Participant", r.participant],
+      ["Genotype", r.genotype],
+      ["Fitness Level", r.fitnessLevels[r.fitness]],
+      ["Generated On", new Date().toLocaleString()],
+      [],
+      ["Assessment Summary (Pre vs Post)"],
+      ["Measure", "Pre", "Post", "Change", "Status"]
+    ];
+
+    const lowerIsBetter = ["tmt_a", "tmt_b", "tug"];
+    const fullNames = {
+      moca: "Montreal Cognitive Assessment (MoCA)",
+      digitf: "Digit Span Forward (DigitF)",
+      digitb: "Digit Span Backward (DigitB)",
+      tmt_a: "Trail Making Test A (TMT-A)",
+      tmt_b: "Trail Making Test B (TMT-B)",
+      sixmwt: "Six-Minute Walk Test (6MWT)",
+      tug: "Timed Up and Go Test (TUG)",
+      grip: "Handgrip Strength (Grip)",
+      bbs: "Berg Balance Scale (BBS)"
+    };
+
+    Object.keys(r.pre).forEach((k) => {
+      const diff = r.post[k] - r.pre[k];
+      let status = "No change";
+      if (lowerIsBetter.includes(k)) {
+        if (diff < 0) status = "Improved (lower = better)";
+        else if (diff > 0) status = "Worsened (higher = slower)";
+      } else {
+        if (diff > 0) status = "Improved (higher = better)";
+        else if (diff < 0) status = "Worsened (lower = decline)";
+      }
+      sheetData.push([
+        fullNames[k] || k.toUpperCase(),
+        r.pre[k],
+        r.post[k],
+        diff > 0 ? "+" + diff : diff,
+        status
+      ]);
+    });
+
+    sheetData.push([]);
+    sheetData.push(["12-Week Exercise Plan"]);
+    sheetData.push(["Week", "Day", "Type", "Duration (min)", "Cognitive Task", "Completed"]);
+
+    r.weeks.forEach((w) => {
+      w.sessions.forEach((s) => {
+        sheetData.push([
+          w.week,
+          s.day,
+          s.type,
+          s.duration_min,
+          s.cognitive,
+          s.done ? "Yes" : "No"
+        ]);
+      });
+    });
+
+    // Create workbook and sheet
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(sheetData);
+    XLSX.utils.book_append_sheet(wb, ws, "Exercise Plan");
+
+    // Export Excel file
+    XLSX.writeFile(
+      wb,
+      `${r.participant.replace(/\s+/g, "_")}_EXECOGIM_Report.xlsx`
+    );
+  });
+}
 
   // ======================================================
   // PWA INSTALL SUPPORT
