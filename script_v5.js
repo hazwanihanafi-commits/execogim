@@ -136,9 +136,9 @@ sessions.push({ day: d, type, duration_min: finalDuration, cognitive: cog, done:
         <tr><th>Measure</th><th>Pre</th><th>Post</th><th>Change</th><th>Status</th></tr>`;
       Object.keys(pre).forEach(k => {
         const diff = post[k] - pre[k];
-        let status = "– No change";
-        if (diff > 0) status = "↑ Improved";
-        else if (diff < 0) status = "↓ Worsened";
+       if (diff > 0) status = "Improved";
+      else if (diff < 0) status = "Worsened";
+      else status = "No change";
         summaryTable.innerHTML += `
           <tr>
             <td>${k.toUpperCase()}</td>
@@ -296,18 +296,26 @@ function updateAdherence() {
     doc.text(`Generated: ${new Date().toLocaleDateString()}`, margin, y);
     y += 20;
 
-    // --- Assessment Summary ---
-    const headers = [["Measure", "Pre", "Post", "Change", "Status"]];
-    const rows = [];
-    Object.keys(r.pre).forEach(k => {
-      const diff = r.post[k] - r.pre[k];
-      let status = "– No change";
-      if (diff > 0) status = "↑ Improved";
-      else if (diff < 0) status = "↓ Worsened";
-      rows.push([k.toUpperCase(), r.pre[k], r.post[k], diff > 0 ? "+" + diff : diff, status]);
-    });
-    doc.autoTable({ startY: y, head: headers, body: rows, styles: { fontSize: 10 } });
-    y = doc.lastAutoTable.finalY + 25;
+   // --- Assessment Summary ---
+const headers = [["Measure", "Pre", "Post", "Change", "Status"]];
+const rows = [];
+const lowerIsBetter = ["tmt_a", "tmt_b", "tug"];
+
+Object.keys(r.pre).forEach(k => {
+  const diff = r.post[k] - r.pre[k];
+  let status = "No change";
+
+  if (lowerIsBetter.includes(k)) {
+    if (diff < 0) status = "\u2191 Improved";     // lower post = better
+    else if (diff > 0) status = "\u2193 Worsened";
+  } else {
+    if (diff > 0) status = "\u2191 Improved";     // higher post = better
+    else if (diff < 0) status = "\u2193 Worsened";
+  }
+
+  rows.push([k.toUpperCase(), r.pre[k], r.post[k], diff > 0 ? "+" + diff : diff, status]);
+});
+doc.autoTable({ startY: y, head: headers, body: rows, styles: { fontSize: 10 } });
 
     // --- Radar Chart (PDF only) ---
     const radarCanvas = document.createElement("canvas");
