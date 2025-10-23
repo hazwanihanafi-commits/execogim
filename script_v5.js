@@ -75,17 +75,41 @@ document.querySelectorAll(".info-btn").forEach((btn) => {
     const fitness = parseInt(document.getElementById("fitness_slider").value) || 3;
     const constraints = Array.from(document.querySelectorAll('input[name="constraint"]:checked')).map(c => c.value);
 
-    const pre = {
-      moca: +moca_pre.value || 0, digitf: +digitf_pre.value || 0, digitb: +digitb_pre.value || 0,
-      tmt_a: +tmt_a_pre.value || 0, tmt_b: +tmt_b_pre.value || 0, sixmwt: +sixmwt_pre.value || 0,
-      tug: +tug_pre.value || 0, grip: +grip_pre.value || 0, bbs: +bbs_pre.value || 0
-    };
+   const pre = { /* ...values... */ };
+  const post = { /* ...values... */ };
 
-    const post = {
-      moca: +moca_post.value || 0, digitf: +digitf_post.value || 0, digitb: +digitb_post.value || 0,
-      tmt_a: +tmt_a_post.value || 0, tmt_b: +tmt_b_post.value || 0, sixmwt: +sixmwt_post.value || 0,
-      tug: +tug_post.value || 0, grip: +grip_post.value || 0, bbs: +bbs_post.value || 0
-    };
+  // ✅ Add this line HERE (inside generatePlan, before creating summary table)
+  const lowerIsBetter = ["tmt_a", "tmt_b", "tug"];
+
+  // --- Summary Table (Pre vs Post) ---
+  const summaryTable = document.getElementById("summaryTable");
+  if (summaryTable) {
+    summaryTable.innerHTML = `
+      <tr><th>Measure</th><th>Pre</th><th>Post</th><th>Change</th><th>Status</th></tr>`;
+
+    Object.keys(pre).forEach(k => {
+      const diff = post[k] - pre[k];
+      let status = "No change";
+
+      if (lowerIsBetter.includes(k)) {
+        if (diff < 0) status = "↑ Improved";
+        else if (diff > 0) status = "↓ Worsened";
+      } else {
+        if (diff > 0) status = "↑ Improved";
+        else if (diff < 0) status = "↓ Worsened";
+      }
+
+      summaryTable.innerHTML += `
+        <tr>
+          <td>${k.toUpperCase()}</td>
+          <td>${pre[k]}</td>
+          <td>${post[k]}</td>
+          <td>${diff > 0 ? "+" + diff : diff}</td>
+          <td>${status}</td>
+        </tr>`;
+    });
+  }
+}
 
     // --- Genotype-specific template ---
     const template = genotype.toLowerCase().startsWith("val")
@@ -275,26 +299,126 @@ function updateAdherence() {
   adherencePct.textContent = `${done}/${total} sessions completed (${pct}%)`;
 }
 
-  // --- PDF Export ---
-  document.getElementById("exportPdf").addEventListener("click", async () => {
-    const r = window.currentReport;
-    if (!r) { alert("Generate a plan first."); return; }
+ // --- PDF Export ---
+document.getElementById("exportPdf").addEventListener("click", async () => {
+  const r = window.currentReport;
+  if (!r) { alert("Generate a plan first."); return; }
 
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit: "pt", format: "a4" });
-    const margin = 36;
-    let y = 36;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: "pt", format: "a4" });
+  const margin = 36;
+  let y = 36;
 
-    doc.setFontSize(14);
-    doc.setTextColor(60, 22, 102);
-    doc.text("Clinical Exercise Prescription Report", margin, y);
-    y += 30;
-    doc.setFontSize(11);
-    doc.text(`Participant: ${r.participant}`, margin, y);
-    doc.text(`Genotype: ${r.genotype}`, margin + 300, y);
-    y += 20;
-    doc.text(`Generated: ${new Date().toLocaleDateString()}`, margin, y);
-    y += 20;
+  // --- Header ---
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
+  doc.setTextColor(60, 22, 102);
+  doc.text("Clinical Exercise Prescription Report", margin, y);
+  y += 30;
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(11);
+  doc.setTextColor(0, 0, 0);
+  doc.text(`Participant: ${r.participant}`, margin, y);
+  doc.text(`Genotype: ${r.genotype}`, margin + 300, y);
+  y += 20;
+  doc.text(`Generated: ${new Date().toLocaleDateString()}`, margin, y);
+  y += 30;
+
+  // --- Assessment Summary ---
+  const headers = [["Measure", "Pre", "Post", "Change", "Status"]];
+  const rows = [];
+  const lowerIsBetter = ["tmt_a", "tmt_b", "tug"];
+
+  Object.keys(r.pre).forEach(k => {
+    const diff = r.post[k] - r.pre[k];
+    let status = "No change";
+
+    if (lowerIsBetter.includes(k)) {
+      if (diff < 0) status = "↑ Improved";
+      else if (diff > 0) status = "↓ Worsened";
+    } else {
+      if (diff > 0) status = "↑ Improved";
+      else if (diff < 0) status = "↓ Worsened";
+    }
+
+    rows.push([
+      k.toUpperCase(),
+      r.pre[k],
+      r.post[k],
+      diff > 0 ? "+" + diff : diff,
+      status
+    ]);
+  });
+
+  doc.autoTable({
+    startY: y,
+    head: headers,
+    body: rows,
+    theme: "grid",
+    styles: { fontSize: 10, cellPadding: 5 },
+    headStyles: { fillColor: [60, 22, 102], textColor: 255, fontStyle: "bold" },
+  });
+  y = doc.lastAutoTable.finalY + 30;
+
+  // --- Radar Chart (PDF only) ---
+  const radarCanvas = document.createElement("canvas");
+  radarCanvas.width = 400;
+  radarCanvas.height = 400;
+  const ctx = radarCanvas.getContext("2d");
+  new Chart(ctx, {
+    type: "radar",
+    data: {
+      labels: Object.keys(r.pre).map(k => k.toUpperCase()),
+      datasets: [
+        { label: "Pre", data: Object.values(r.pre), borderColor: "#f26b00", backgroundColor: "rgba(242,107,0,0.2)" },
+        { label: "Post", data: Object.values(r.post), borderColor: "#6b3fa0", backgroundColor: "rgba(107,63,160,0.2)" }
+      ]
+    },
+    options: {
+      responsive: false,
+      scales: { r: { beginAtZero: true, ticks: { stepSize: 10 } } },
+      plugins: { legend: { labels: { font: { size: 10 } } } }
+    }
+  });
+  await new Promise(res => setTimeout(res, 700));
+  const img = radarCanvas.toDataURL("image/png");
+  doc.addImage(img, "PNG", margin, y, 400, 400);
+  y += 420;
+
+  // --- Adherence ---
+  const total = r.weeks.reduce((sum, w) => sum + w.sessions.length, 0);
+  const done = r.weeks.reduce((sum, w) => sum + w.sessions.filter(s => s.done).length, 0);
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  doc.setFontSize(11);
+  doc.text(`Overall adherence: ${done}/${total} sessions completed (${pct}%)`, margin, y);
+  y += 20;
+
+  // --- Exercise Plan ---
+  const planHeaders = [["Week", "Day", "Type", "Duration (min)", "Cognitive Focus"]];
+  const planRows = [];
+  r.weeks.forEach(w => w.sessions.forEach(s =>
+    planRows.push([
+      `Week ${w.week}`,
+      s.day,
+      s.type === "Rest" ? "Rest" : s.type,
+      s.duration_min || "-",
+      s.cognitive || "-"
+    ])
+  ));
+
+  doc.autoTable({
+    startY: y,
+    head: planHeaders,
+    body: planRows,
+    theme: "grid",
+    styles: { fontSize: 9, cellPadding: 4 },
+    headStyles: { fillColor: [107, 63, 160], textColor: 255 },
+  });
+
+  // ✅ Save the PDF
+  doc.save(`${r.participant.replace(/\s+/g, "_")}_report.pdf`);
+});
 
    // --- Assessment Summary ---
 const headers = [["Measure", "Pre", "Post", "Change", "Status"]];
