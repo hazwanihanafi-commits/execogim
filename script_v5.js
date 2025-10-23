@@ -1,5 +1,5 @@
 // =============================================
-// EXECOGIM v9 — Clinical Exercise Prescription App (FINAL, No Arrows)
+// EXECOGIM v9 — Clinical Exercise Prescription App (FINAL + PWA ENABLED)
 // =============================================
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -21,16 +21,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- Normative references ---
   const norms = {
-  moca: "Montreal Cognitive Assessment — evaluates global cognition. Normal ≥26/30.",
-  digitf: "Digit Span Forward — measures attention and immediate recall. Normal 6–9 digits.",
-  digitb: "Digit Span Backward — measures working memory. Normal 4–8 digits.",
-  tmt_a: "Trail Making Test A — measures visual attention and processing speed. Lower time = better.",
-  tmt_b: "Trail Making Test B — measures cognitive flexibility and sequencing. Lower time = better.",
-  sixmwt: "Six-Minute Walk Test — evaluates aerobic endurance. Normal 400–700 m, varies by age and sex.",
-  tug: "Timed Up and Go Test — measures mobility and balance. Normal <10 s. >13.5 s = fall risk.",
-  grip: "Handgrip Strength — assesses upper-limb strength. Normal ≥30 kg (men), ≥20 kg (women).",
-  bbs: "Berg Balance Scale — evaluates balance and stability. 50–56 = good, <45 = fall risk."
-};
+    moca: "Montreal Cognitive Assessment — evaluates global cognition. Normal ≥26/30.",
+    digitf: "Digit Span Forward — measures attention and immediate recall. Normal 6–9 digits.",
+    digitb: "Digit Span Backward — measures working memory. Normal 4–8 digits.",
+    tmt_a: "Trail Making Test A — measures visual attention and processing speed. Lower time = better.",
+    tmt_b: "Trail Making Test B — measures cognitive flexibility and sequencing. Lower time = better.",
+    sixmwt: "Six-Minute Walk Test — evaluates aerobic endurance. Normal 400–700 m, varies by age and sex.",
+    tug: "Timed Up and Go Test — measures mobility and balance. Normal <10 s. >13.5 s = fall risk.",
+    grip: "Handgrip Strength — assesses upper-limb strength. Normal ≥30 kg (men), ≥20 kg (women).",
+    bbs: "Berg Balance Scale — evaluates balance and stability. 50–56 = good, <45 = fall risk."
+  };
 
   // --- Info Modal (tap/hover) ---
   const modalBackdrop = document.getElementById("modalBackdrop");
@@ -46,10 +46,14 @@ document.addEventListener("DOMContentLoaded", () => {
       modalBackdrop.style.display = "flex";
     };
     btn.addEventListener("mouseenter", showInfo);
-    btn.addEventListener("touchstart", (e) => {
-      e.preventDefault();
-      showInfo();
-    }, { passive: false });
+    btn.addEventListener(
+      "touchstart",
+      (e) => {
+        e.preventDefault();
+        showInfo();
+      },
+      { passive: false }
+    );
   });
 
   modalClose.addEventListener("click", () => (modalBackdrop.style.display = "none"));
@@ -71,18 +75,46 @@ document.addEventListener("DOMContentLoaded", () => {
     const participant = document.getElementById("participant_name").value || "Participant";
     const genotype = document.getElementById("genotype").value || "Val/Val";
     const fitness = parseInt(document.getElementById("fitness_slider").value) || 3;
-    const constraints = Array.from(document.querySelectorAll('input[name="constraint"]:checked')).map((c) => c.value);
+    const constraints = Array.from(
+      document.querySelectorAll('input[name="constraint"]:checked')
+    ).map((c) => c.value);
+
+    // --- Fitness Level Info ---
+    const fitnessLevels = {
+      1: "Low (Sedentary or limited activity)",
+      2: "Below Average (Occasional exercise)",
+      3: "Moderate (Active lifestyle)",
+      4: "Good (Regular exerciser)",
+      5: "Excellent (Athletic/highly active)"
+    };
+
+    // --- Genotype explanation ---
+    const genotypeInfo = genotype.toLowerCase().startsWith("val")
+      ? "Val/Val — Higher BDNF expression, responds better to high-intensity exercise."
+      : "Met carrier — Lower BDNF expression, benefits more from consistent light-to-moderate activity.";
 
     // --- Pre and Post values ---
     const pre = {
-      moca: +moca_pre.value || 0, digitf: +digitf_pre.value || 0, digitb: +digitb_pre.value || 0,
-      tmt_a: +tmt_a_pre.value || 0, tmt_b: +tmt_b_pre.value || 0, sixmwt: +sixmwt_pre.value || 0,
-      tug: +tug_pre.value || 0, grip: +grip_pre.value || 0, bbs: +bbs_pre.value || 0
+      moca: +moca_pre.value || 0,
+      digitf: +digitf_pre.value || 0,
+      digitb: +digitb_pre.value || 0,
+      tmt_a: +tmt_a_pre.value || 0,
+      tmt_b: +tmt_b_pre.value || 0,
+      sixmwt: +sixmwt_pre.value || 0,
+      tug: +tug_pre.value || 0,
+      grip: +grip_pre.value || 0,
+      bbs: +bbs_pre.value || 0
     };
     const post = {
-      moca: +moca_post.value || 0, digitf: +digitf_post.value || 0, digitb: +digitb_post.value || 0,
-      tmt_a: +tmt_a_post.value || 0, tmt_b: +tmt_b_post.value || 0, sixmwt: +sixmwt_post.value || 0,
-      tug: +tug_post.value || 0, grip: +grip_post.value || 0, bbs: +bbs_post.value || 0
+      moca: +moca_post.value || 0,
+      digitf: +digitf_post.value || 0,
+      digitb: +digitb_post.value || 0,
+      tmt_a: +tmt_a_post.value || 0,
+      tmt_b: +tmt_b_post.value || 0,
+      sixmwt: +sixmwt_post.value || 0,
+      tug: +tug_post.value || 0,
+      grip: +grip_post.value || 0,
+      bbs: +bbs_post.value || 0
     };
 
     const lowerIsBetter = ["tmt_a", "tmt_b", "tug"];
@@ -90,7 +122,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // --- Summary Table (on screen) ---
     const summaryTable = document.getElementById("summaryTable");
     if (summaryTable) {
-      summaryTable.innerHTML = `<tr><th>Measure</th><th>Pre</th><th>Post</th><th>Change</th><th>Status</th></tr>`;
+      summaryTable.innerHTML =
+        `<tr><th>Measure</th><th>Pre</th><th>Post</th><th>Change</th><th>Status</th></tr>`;
       Object.keys(pre).forEach((k) => {
         const diff = post[k] - pre[k];
         let status = "No change";
@@ -115,8 +148,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // --- Genotype template ---
     const template = genotype.toLowerCase().startsWith("val")
-      ? { label: "Val/Val", sessions_per_week: 4, session_length: 30, intensity: "moderate-to-vigorous" }
-      : { label: "Met carrier", sessions_per_week: 5, session_length: 40, intensity: "light-to-moderate" };
+      ? {
+          label: "Val/Val",
+          sessions_per_week: 4,
+          session_length: 30,
+          intensity: "moderate-to-vigorous"
+        }
+      : {
+          label: "Met carrier",
+          sessions_per_week: 5,
+          session_length: 40,
+          intensity: "light-to-moderate"
+        };
 
     if (fitness < 3) {
       template.sessions_per_week = Math.max(3, template.sessions_per_week - 1);
@@ -155,8 +198,8 @@ document.addEventListener("DOMContentLoaded", () => {
       weeks.push({ week: wk, sessions });
     }
 
-    window.currentReport = { participant, genotype, fitness, constraints, template, pre, post, weeks };
-    renderPlan(window.currentReport);
+    window.currentReport = { participant, genotype, fitness, constraints, template, pre, post, weeks, genotypeInfo, fitnessLevels };
+    renderPlan(window.currentReport, fitnessLevels, genotypeInfo);
     setupWeeklyChecks(window.currentReport);
     resultDiv.style.display = "block";
   }
@@ -164,12 +207,14 @@ document.addEventListener("DOMContentLoaded", () => {
   // ======================================================
   // FUNCTION: RENDER PLAN
   // ======================================================
-  function renderPlan(report) {
+  function renderPlan(report, fitnessLevels, genotypeInfo) {
     document.getElementById("result-title").textContent = `${report.participant} — ${report.genotype}`;
     document.getElementById("summary").innerHTML = `
       <p><strong>Sessions/week:</strong> ${report.template.sessions_per_week} • 
       <strong>Session length:</strong> ${report.template.session_length} min • 
       <strong>Intensity:</strong> ${report.template.intensity}</p>
+      <p><strong>Genotype Info:</strong> ${report.genotypeInfo}</p>
+      <p><strong>Fitness Level:</strong> ${report.fitnessLevels[report.fitness]}</p>
       <p class="instruction">✔️ Tap any exercise once to mark it done — progress syncs automatically.</p>`;
 
     weeksDiv.innerHTML = "";
@@ -180,7 +225,9 @@ document.addEventListener("DOMContentLoaded", () => {
       w.sessions.forEach((s, si) => {
         const btn = document.createElement("button");
         btn.textContent =
-          s.type === "Rest" ? `${s.day}: Rest` : `${s.day}: ${s.type} — ${s.duration_min} min (${s.cognitive})`;
+          s.type === "Rest"
+            ? `${s.day}: Rest`
+            : `${s.day}: ${s.type} — ${s.duration_min} min (${s.cognitive})`;
         btn.className = "day-btn";
         if (s.done) btn.classList.add("done");
         btn.addEventListener("click", () => {
@@ -195,69 +242,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // --- Weekly checks ---
-  function setupWeeklyChecks(report) {
-    const container = document.getElementById("weeklyChecks");
-    container.innerHTML = "";
-    report.weeks.forEach((w, wi) => {
-      const card = document.createElement("div");
-      card.className = "week-card";
-      const title = document.createElement("h4");
-      title.textContent = `Week ${w.week}`;
-      card.appendChild(title);
-      const list = document.createElement("div");
-      w.sessions.forEach((s, si) => {
-        const btn = document.createElement("button");
-        btn.textContent = s.day;
-        btn.className = "day-btn";
-        if (s.done) btn.classList.add("done");
-        btn.addEventListener("click", () => {
-          s.done = !s.done;
-          btn.classList.toggle("done");
-          syncPlanButton(wi, si, s.done);
-          updateAdherence();
-        });
-        list.appendChild(btn);
-      });
-      card.appendChild(list);
-      container.appendChild(card);
-    });
-  }
-
-  // --- Sync ---
-  function syncPlanButton(weekIndex, sessionIndex, isDone) {
-    const planWeeks = weeksDiv.querySelectorAll(".week-card");
-    const targetWeek = planWeeks[weekIndex];
-    if (!targetWeek) return;
-    const targetButton = targetWeek.querySelectorAll(".day-btn")[sessionIndex];
-    if (targetButton) targetButton.classList.toggle("done", isDone);
-  }
-
-  function syncWeeklyButton(weekIndex, sessionIndex, isDone) {
-    const weekCards = document.getElementById("weeklyChecks").querySelectorAll(".week-card");
-    const targetWeek = weekCards[weekIndex];
-    if (!targetWeek) return;
-    const targetButton = targetWeek.querySelectorAll(".day-btn")[sessionIndex];
-    if (targetButton) targetButton.classList.toggle("done", isDone);
-  }
-
-  // --- Adherence ---
-  function updateAdherence() {
-    const r = window.currentReport;
-    if (!r) return;
-    let total = 0, done = 0;
-    r.weeks.forEach((w) => w.sessions.forEach((s) => { total++; if (s.done) done++; }));
-    const pct = total ? Math.round((done / total) * 100) : 0;
-    adherenceBar.style.width = pct + "%";
-    adherencePct.textContent = `${done}/${total} sessions completed (${pct}%)`;
-  }
-
   // ======================================================
   // PDF EXPORT
   // ======================================================
   document.getElementById("exportPdf").addEventListener("click", async () => {
     const r = window.currentReport;
-    if (!r) { alert("Generate a plan first."); return; }
+    if (!r) return alert("Generate a plan first.");
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit: "pt", format: "a4" });
@@ -272,65 +262,40 @@ document.addEventListener("DOMContentLoaded", () => {
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(11);
-    doc.setTextColor(0, 0, 0);
     doc.text(`Participant: ${r.participant}`, margin, y);
     doc.text(`Genotype: ${r.genotype}`, margin + 300, y);
+    y += 20;
+    doc.text(`Fitness Level: ${r.fitnessLevels[r.fitness]}`, margin, y);
     y += 20;
     doc.text(`Generated: ${new Date().toLocaleDateString()}`, margin, y);
     y += 25;
 
-    // --- Assessment Summary ---
     const headers = [["Measure", "Pre", "Post", "Change", "Status"]];
     const rows = [];
     const lowerIsBetter = ["tmt_a", "tmt_b", "tug"];
-   // --- Full Test Names Map for PDF ---
-const fullNames = {
-  moca: "Montreal Cognitive Assessment (MoCA)",
-  digitf: "Digit Span Forward (DigitF)",
-  digitb: "Digit Span Backward (DigitB)",
-  tmt_a: "Trail Making Test A (TMT-A)",
-  tmt_b: "Trail Making Test B (TMT-B)",
-  sixmwt: "Six-Minute Walk Test (6MWT)",
-  tug: "Timed Up and Go Test (TUG)",
-  grip: "Handgrip Strength (Grip)",
-  bbs: "Berg Balance Scale (BBS)"
-};
+    const fullNames = {
+      moca: "Montreal Cognitive Assessment (MoCA)",
+      digitf: "Digit Span Forward (DigitF)",
+      digitb: "Digit Span Backward (DigitB)",
+      tmt_a: "Trail Making Test A (TMT-A)",
+      tmt_b: "Trail Making Test B (TMT-B)",
+      sixmwt: "Six-Minute Walk Test (6MWT)",
+      tug: "Timed Up and Go Test (TUG)",
+      grip: "Handgrip Strength (Grip)",
+      bbs: "Berg Balance Scale (BBS)"
+    };
 
-// --- Status Logic (Improvement / Worsening) ---
-Object.keys(r.pre).forEach(k => {
-  const diff = r.post[k] - r.pre[k];
-  let status = "No change";
-
-  const lowerIsBetter = ["tmt_a", "tmt_b", "tug"];
-
-  if (lowerIsBetter.includes(k)) {
-    if (diff < 0) status = "Improved (lower = better)";
-    else if (diff > 0) status = "Worsened (higher = slower)";
-  } else {
-    if (diff > 0) status = "Improved (higher = better)";
-    else if (diff < 0) status = "Worsened (lower = decline)";
-  }
-
-  // ✅ Display both abbreviation and full test name
-  const testName = fullNames[k] || k.toUpperCase();
-
-  rows.push([
-    testName,
-    r.pre[k],
-    r.post[k],
-    diff > 0 ? "+" + diff : diff,
-    status
-  ]);
-});
-
+    Object.keys(r.pre).forEach((k) => {
+      const diff = r.post[k] - r.pre[k];
+      let status = "No change";
       if (lowerIsBetter.includes(k)) {
-        if (diff < 0) status = "Improved";
-        else if (diff > 0) status = "Worsened";
+        if (diff < 0) status = "Improved (lower = better)";
+        else if (diff > 0) status = "Worsened (higher = slower)";
       } else {
-        if (diff > 0) status = "Improved";
-        else if (diff < 0) status = "Worsened";
+        if (diff > 0) status = "Improved (higher = better)";
+        else if (diff < 0) status = "Worsened (lower = decline)";
       }
-      rows.push([k.toUpperCase(), r.pre[k], r.post[k], diff > 0 ? "+" + diff : diff, status]);
+      rows.push([fullNames[k] || k.toUpperCase(), r.pre[k], r.post[k], diff > 0 ? "+" + diff : diff, status]);
     });
 
     doc.autoTable({
@@ -339,53 +304,15 @@ Object.keys(r.pre).forEach(k => {
       body: rows,
       theme: "grid",
       styles: { fontSize: 10, cellPadding: 5 },
-      headStyles: { fillColor: [60, 22, 102], textColor: 255, fontStyle: "bold" },
+      columnStyles: { 0: { cellWidth: 190 } },
+      headStyles: { fillColor: [60, 22, 102], textColor: 255, fontStyle: "bold" }
     });
-    y = doc.lastAutoTable.finalY + 25;
 
-    const radarCanvas = document.createElement("canvas");
-    radarCanvas.width = 400; radarCanvas.height = 400;
-    const ctx = radarCanvas.getContext("2d");
-    new Chart(ctx, {
-      type: "radar",
-      data: {
-        labels: Object.keys(r.pre).map(k => k.toUpperCase()),
-        datasets: [
-          { label: "Pre", data: Object.values(r.pre), borderColor: "#f26b00", backgroundColor: "rgba(242,107,0,0.2)" },
-          { label: "Post", data: Object.values(r.post), borderColor: "#6b3fa0", backgroundColor: "rgba(107,63,160,0.2)" }
-        ]
-      },
-      options: { responsive: false, scales: { r: { beginAtZero: true } } }
-    });
-    await new Promise(res => setTimeout(res, 700));
-    const img = radarCanvas.toDataURL("image/png");
-    doc.addImage(img, "PNG", margin, y, 400, 400);
-    y += 420;
-
-    const total = r.weeks.reduce((sum, w) => sum + w.sessions.length, 0);
-    const done = r.weeks.reduce((sum, w) => sum + w.sessions.filter(s => s.done).length, 0);
-    const pct = total ? Math.round((done / total) * 100) : 0;
-    doc.text(`Overall adherence: ${done}/${total} sessions completed (${pct}%)`, margin, y);
-    y += 20;
-
-    const planHeaders = [["Week", "Day", "Type", "Duration (min)", "Cognitive Focus"]];
-    const planRows = [];
-    r.weeks.forEach(w => w.sessions.forEach(s => {
-      if (s.type !== "Rest") planRows.push([`Week ${w.week}`, s.day, s.type, s.duration_min, s.cognitive]);
-    }));
-    doc.autoTable({
-      startY: y,
-      head: planHeaders,
-      body: planRows,
-      theme: "grid",
-      styles: { fontSize: 9, cellPadding: 4 },
-      headStyles: { fillColor: [107, 63, 160], textColor: 255 },
-    });
     doc.save(`${r.participant.replace(/\s+/g, "_")}_report.pdf`);
   });
 
   // ======================================================
-  // PWA Install
+  // PWA INSTALL SUPPORT
   // ======================================================
   let deferredPrompt;
   const installContainer = document.getElementById("installContainer");
