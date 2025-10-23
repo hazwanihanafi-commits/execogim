@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>EXECOGIM — Clinical Exercise Prescription App</title>
 
-<!-- ✅ PWA & Libraries -->
+<!-- ✅ Libraries & PWA -->
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <meta name="theme-color" content="#6b3fa0">
@@ -35,20 +35,18 @@ if ('serviceWorker' in navigator) {
   .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
   label{display:block;font-weight:600;margin-bottom:6px;color:#2b1b3a}
   input,select{width:100%;padding:8px;border-radius:8px;border:1px solid #e9e6f0;background:#fff}
+  small.desc{display:block;color:#555;font-size:0.8em;margin-top:3px;margin-bottom:10px}
   h2{color:var(--purple);margin:0 0 10px}
   h4{color:var(--orange);margin:6px 0}
   .btn{background:linear-gradient(90deg,var(--purple),var(--orange));color:#fff;padding:10px 14px;border:none;border-radius:8px;cursor:pointer;font-weight:700}
   .btn.ghost{background:transparent;border:2px solid var(--purple);color:var(--purple)}
-  small.desc{display:block;color:#555;font-size:0.8em;margin-top:3px;margin-bottom:10px}
   .week-card{border-radius:10px;padding:12px;border:1px solid rgba(107,63,160,0.06);background:linear-gradient(180deg,#fff,#fbf8ff)}
   .day-btn{display:inline-block;padding:6px 10px;border-radius:8px;border:1px solid var(--purple);color:var(--purple);margin:4px;cursor:pointer;background:white}
   .day-btn.done{background:linear-gradient(90deg,var(--purple),var(--orange));color:#fff;border-color:transparent}
   .progress-bar{height:12px;background:#f1edf6;border-radius:12px;overflow:hidden;margin-top:6px}
   .progress-fill{height:100%;background:linear-gradient(90deg,var(--orange),var(--purple));width:0%;transition:width .3s}
-  footer.footer{padding:16px;text-align:center;color:#5b3b6d;margin-top:12px}
-  #installContainer{display:none;position:fixed;left:0;bottom:0;width:100%;background:white;box-shadow:0 -4px 10px rgba(0,0,0,0.1);text-align:center;padding:14px;z-index:2000}
-  #installContainer .installBtn{background:linear-gradient(90deg,var(--purple),var(--orange));color:white;padding:10px 18px;border-radius:10px;border:0;cursor:pointer}
   #summary{background:#f8f6ff;border-left:4px solid #6b3fa0;padding:10px 14px;border-radius:6px;margin-bottom:16px;color:#333}
+  footer.footer{padding:16px;text-align:center;color:#5b3b6d;margin-top:12px}
 </style>
 </head>
 
@@ -94,59 +92,86 @@ if ('serviceWorker' in navigator) {
           </div>
         </div>
 
+        <!-- Pre-assessment -->
         <div>
           <h4>Pre-assessment — Cognitive</h4>
           <label>MoCA</label>
-          <small class="desc">Montreal Cognitive Assessment — evaluates global cognition. Normal ≥26/30.</small>
           <input id="moca_pre" type="number">
-         
+          <small class="desc">Montreal Cognitive Assessment — evaluates global cognition. Normal ≥26/30.</small>
+
           <label>DigitF</label>
-          <small class="desc">Digit Span Forward — measures attention and immediate recall. Normal 6–9 digits.</small>
           <input id="digitf_pre" type="number">
+          <small class="desc">Digit Span Forward — measures attention and immediate recall. Normal 6–9 digits.</small>
 
           <label>DigitB</label>
-          <small class="desc">Digit Span Backward — measures working memory. Normal 4–8 digits.</small>
           <input id="digitb_pre" type="number">
+          <small class="desc">Digit Span Backward — measures working memory. Normal 4–8 digits.</small>
 
           <label>TMT-A (s)</label>
-          <small class="desc">Trail Making Test A — visual attention & processing speed. Lower time = better.</small>
           <input id="tmt_a_pre" type="number">
+          <small class="desc">Trail Making Test A — visual attention & processing speed. Lower time = better.</small>
 
           <label>TMT-B (s)</label>
-          <small class="desc">Trail Making Test B — cognitive flexibility & sequencing. Lower time = better.</small>
           <input id="tmt_b_pre" type="number">
+          <small class="desc">Trail Making Test B — cognitive flexibility & sequencing. Lower time = better.</small>
 
           <h4>Pre-assessment — Physical</h4>
           <label>6MWT (m)</label>
-          <small class="desc">Six-Minute Walk Test — aerobic endurance. Normal 400–700 m.</small>
           <input id="sixmwt_pre" type="number">
+          <small class="desc">Six-Minute Walk Test — aerobic endurance. Normal 400–700 m.</small>
 
           <label>TUG (s)</label>
-          <small class="desc">Timed Up and Go — mobility & balance. Normal <10 s; >13.5 s = fall risk.</small>
           <input id="tug_pre" type="number">
+          <small class="desc">Timed Up and Go — mobility & balance. Normal <10 s; >13.5 s = fall risk.</small>
 
           <label>Grip (kg)</label>
-          <small class="desc">Handgrip Strength — upper-limb strength. Normal ≥30 kg (men), ≥20 kg (women).</small>
           <input id="grip_pre" type="number">
+          <small class="desc">Handgrip Strength — upper-limb strength. Normal ≥30 kg (men), ≥20 kg (women).</small>
 
           <label>BBS (0–56)</label>
-          <small class="desc">Berg Balance Scale — balance & stability. 50–56 = good; <45 = fall risk.</small>
           <input id="bbs_pre" type="number">
+          <small class="desc">Berg Balance Scale — balance & stability. 50–56 = good; <45 = fall risk.</small>
         </div>
 
+        <!-- Post-assessment -->
         <div>
           <h4>Post-assessment — Cognitive</h4>
-          <label>MoCA</label><input id="moca_post" type="number">
-          <label>DigitF</label><input id="digitf_post" type="number">
-          <label>DigitB</label><input id="digitb_post" type="number">
-          <label>TMT-A (s)</label><input id="tmt_a_post" type="number">
-          <label>TMT-B (s)</label><input id="tmt_b_post" type="number">
+          <label>MoCA</label>
+          <input id="moca_post" type="number">
+          <small class="desc">Montreal Cognitive Assessment — evaluates global cognition. Normal ≥26/30.</small>
+
+          <label>DigitF</label>
+          <input id="digitf_post" type="number">
+          <small class="desc">Digit Span Forward — measures attention and immediate recall. Normal 6–9 digits.</small>
+
+          <label>DigitB</label>
+          <input id="digitb_post" type="number">
+          <small class="desc">Digit Span Backward — measures working memory. Normal 4–8 digits.</small>
+
+          <label>TMT-A (s)</label>
+          <input id="tmt_a_post" type="number">
+          <small class="desc">Trail Making Test A — visual attention & processing speed. Lower time = better.</small>
+
+          <label>TMT-B (s)</label>
+          <input id="tmt_b_post" type="number">
+          <small class="desc">Trail Making Test B — cognitive flexibility & sequencing. Lower time = better.</small>
 
           <h4>Post-assessment — Physical</h4>
-          <label>6MWT (m)</label><input id="sixmwt_post" type="number">
-          <label>TUG (s)</label><input id="tug_post" type="number">
-          <label>Grip (kg)</label><input id="grip_post" type="number">
-          <label>BBS</label><input id="bbs_post" type="number">
+          <label>6MWT (m)</label>
+          <input id="sixmwt_post" type="number">
+          <small class="desc">Six-Minute Walk Test — aerobic endurance. Normal 400–700 m.</small>
+
+          <label>TUG (s)</label>
+          <input id="tug_post" type="number">
+          <small class="desc">Timed Up and Go — mobility & balance. Normal <10 s; >13.5 s = fall risk.</small>
+
+          <label>Grip (kg)</label>
+          <input id="grip_post" type="number">
+          <small class="desc">Handgrip Strength — upper-limb strength. Normal ≥30 kg (men), ≥20 kg (women).</small>
+
+          <label>BBS (0–56)</label>
+          <input id="bbs_post" type="number">
+          <small class="desc">Berg Balance Scale — balance & stability. 50–56 = good; <45 = fall risk.</small>
         </div>
 
         <div style="grid-column:1/-1;display:flex;gap:12px;align-items:center;margin-top:10px;">
@@ -157,7 +182,6 @@ if ('serviceWorker' in navigator) {
       </form>
     </section>
 
-    <!-- Assessment Summary -->
     <section class="card">
       <h2>Assessment Summary (Pre vs Post)</h2>
       <p>This summary shows the raw change and status for each assessment parameter.</p>
@@ -172,7 +196,6 @@ if ('serviceWorker' in navigator) {
       </table>
     </section>
 
-    <!-- 12-Week Exercise Plan -->
     <section class="card">
       <h2>12-Week Exercise Plan</h2>
       <div id="result" style="display:none">
@@ -182,7 +205,6 @@ if ('serviceWorker' in navigator) {
       </div>
     </section>
 
-    <!-- Weekly Progress -->
     <section class="card">
       <h2>Weekly Progress & Adherence</h2>
       <p>Mark completed sessions each week to track adherence.</p>
@@ -198,17 +220,6 @@ if ('serviceWorker' in navigator) {
   <footer class="footer">
     <div>Assoc. Prof. Dr. Hazwani Ahmad Yusof @ Hanafi — IPPT, Universiti Sains Malaysia</div>
   </footer>
-
-  <div id="pdfCharts" style="display:none">
-    <canvas id="radarChart" width="600" height="450"></canvas>
-  </div>
-
-  <!-- 📲 Install App Banner -->
-  <div id="installContainer">
-    <p style="margin:0 0 8px;font-weight:600;font-size:15px;">📲 Add <strong>EXECOGIM</strong> to your home screen</p>
-    <button id="installBtn" class="installBtn">Install App</button>
-    <p style="font-size:13px;color:#666;margin-top:6px;">💡 On iPhone/iPad: Tap <strong>Share</strong> → <strong>Add to Home Screen</strong></p>
-  </div>
 
   <script src="script_v5.js"></script>
 </body>
