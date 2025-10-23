@@ -94,13 +94,14 @@ document.addEventListener("DOMContentLoaded", () => {
       Object.keys(pre).forEach(k => {
         const diff = post[k] - pre[k];
         let status = "No change";
-        if (lowerIsBetter.includes(k)) {
-          if (diff < 0) status = "↑ Improved";
-          else if (diff > 0) status = "↓ Worsened";
-        } else {
-          if (diff > 0) status = "↑ Improved";
-          else if (diff < 0) status = "↓ Worsened";
-        }
+  if (lowerIsBetter.includes(k)) {
+  if (diff < 0) status = `<span style="color:green;">&#8593; Improved</span>`;
+  else if (diff > 0) status = `<span style="color:red;">&#8595; Worsened</span>`;
+} else {
+  if (diff > 0) status = `<span style="color:green;">&#8593; Improved</span>`;
+  else if (diff < 0) status = `<span style="color:red;">&#8595; Worsened</span>`;
+}
+
         summaryTable.innerHTML += `
           <tr>
             <td>${k.toUpperCase()}</td>
@@ -283,12 +284,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const diff = r.post[k] - r.pre[k];
       let status = "No change";
       if (lowerIsBetter.includes(k)) {
-        if (diff < 0) status = "↑ Improved";
-        else if (diff > 0) status = "↓ Worsened";
-      } else {
-        if (diff > 0) status = "↑ Improved";
-        else if (diff < 0) status = "↓ Worsened";
-      }
+  if (diff < 0) status = "Improved ↑";
+  else if (diff > 0) status = "Worsened ↓";
+} else {
+  if (diff > 0) status = "Improved ↑";
+  else if (diff < 0) status = "Worsened ↓";
+}
+
       rows.push([k.toUpperCase(), r.pre[k], r.post[k], diff > 0 ? "+" + diff : diff, status]);
     });
 
