@@ -1,5 +1,5 @@
 // =============================================
-// EXECOGIM v9 — Clinical Exercise Prescription App (FINAL, arrow-free)
+// EXECOGIM v9 — Clinical Exercise Prescription App (FINAL, No Arrows)
 // =============================================
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -46,16 +46,13 @@ document.addEventListener("DOMContentLoaded", () => {
       modalBackdrop.style.display = "flex";
     };
     btn.addEventListener("mouseenter", showInfo);
-    btn.addEventListener(
-      "touchstart",
-      (e) => {
-        e.preventDefault();
-        showInfo();
-      },
-      { passive: false }
-    );
+    btn.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      showInfo();
+    }, { passive: false });
   });
-  if (modalClose) modalClose.addEventListener("click", () => (modalBackdrop.style.display = "none"));
+
+  modalClose.addEventListener("click", () => (modalBackdrop.style.display = "none"));
   modalBackdrop.addEventListener("click", (e) => {
     if (e.target === modalBackdrop) modalBackdrop.style.display = "none";
   });
@@ -78,31 +75,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // --- Pre and Post values ---
     const pre = {
-      moca: +moca_pre.value || 0,
-      digitf: +digitf_pre.value || 0,
-      digitb: +digitb_pre.value || 0,
-      tmt_a: +tmt_a_pre.value || 0,
-      tmt_b: +tmt_b_pre.value || 0,
-      sixmwt: +sixmwt_pre.value || 0,
-      tug: +tug_pre.value || 0,
-      grip: +grip_pre.value || 0,
-      bbs: +bbs_pre.value || 0
+      moca: +moca_pre.value || 0, digitf: +digitf_pre.value || 0, digitb: +digitb_pre.value || 0,
+      tmt_a: +tmt_a_pre.value || 0, tmt_b: +tmt_b_pre.value || 0, sixmwt: +sixmwt_pre.value || 0,
+      tug: +tug_pre.value || 0, grip: +grip_pre.value || 0, bbs: +bbs_pre.value || 0
     };
     const post = {
-      moca: +moca_post.value || 0,
-      digitf: +digitf_post.value || 0,
-      digitb: +digitb_post.value || 0,
-      tmt_a: +tmt_a_post.value || 0,
-      tmt_b: +tmt_b_post.value || 0,
-      sixmwt: +sixmwt_post.value || 0,
-      tug: +tug_post.value || 0,
-      grip: +grip_post.value || 0,
-      bbs: +bbs_post.value || 0
+      moca: +moca_post.value || 0, digitf: +digitf_post.value || 0, digitb: +digitb_post.value || 0,
+      tmt_a: +tmt_a_post.value || 0, tmt_b: +tmt_b_post.value || 0, sixmwt: +sixmwt_post.value || 0,
+      tug: +tug_post.value || 0, grip: +grip_post.value || 0, bbs: +bbs_post.value || 0
     };
 
     const lowerIsBetter = ["tmt_a", "tmt_b", "tug"];
 
-    // --- Summary Table ---
+    // --- Summary Table (on screen) ---
     const summaryTable = document.getElementById("summaryTable");
     if (summaryTable) {
       summaryTable.innerHTML = `<tr><th>Measure</th><th>Pre</th><th>Post</th><th>Change</th><th>Status</th></tr>`;
@@ -116,6 +101,7 @@ document.addEventListener("DOMContentLoaded", () => {
           if (diff > 0) status = `<span style="color:green;">Improved</span>`;
           else if (diff < 0) status = `<span style="color:red;">Worsened</span>`;
         }
+
         summaryTable.innerHTML += `
           <tr>
             <td>${k.toUpperCase()}</td>
@@ -127,7 +113,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    // --- Genotype Template ---
+    // --- Genotype template ---
     const template = genotype.toLowerCase().startsWith("val")
       ? { label: "Val/Val", sessions_per_week: 4, session_length: 30, intensity: "moderate-to-vigorous" }
       : { label: "Met carrier", sessions_per_week: 5, session_length: 40, intensity: "light-to-moderate" };
@@ -141,66 +127,26 @@ document.addEventListener("DOMContentLoaded", () => {
       template.session_length = Math.round(template.session_length * 1.1);
     }
 
-    // --- 12-week plan ---
+    // --- 12-week plan generator ---
     const weeks = [];
     for (let wk = 1; wk <= 12; wk++) {
       const sessions = [];
       ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].forEach((d) => {
-        let type = "Rest",
-          dur = 0,
-          cog = "";
+        let type = "Rest", dur = 0, cog = "";
         if (template.label === "Val/Val") {
-          if (d === "Mon") {
-            type = "HIIT";
-            dur = template.session_length;
-            cog = "Reaction";
-          } else if (d === "Tue") {
-            type = "Resistance";
-            dur = Math.round(template.session_length * 0.9);
-            cog = "Random Cue";
-          } else if (d === "Wed") {
-            type = "Skill/Dual-task";
-            dur = Math.round(template.session_length * 0.8);
-            cog = "Coordination";
-          } else if (d === "Thu") {
-            type = "Active Recovery";
-            dur = 20;
-            cog = "Relaxation";
-          } else if (d === "Fri") {
-            type = "Mixed Cardio-Strength";
-            dur = template.session_length;
-            cog = "Focus";
-          } else if (d === "Sat") {
-            type = "Optional Sport";
-            dur = 30;
-            cog = "Strategy";
-          }
+          if (d === "Mon") { type="HIIT"; dur=template.session_length; cog="Reaction"; }
+          else if (d==="Tue"){ type="Resistance"; dur=Math.round(template.session_length*0.9); cog="Random Cue"; }
+          else if (d==="Wed"){ type="Skill/Dual-task"; dur=Math.round(template.session_length*0.8); cog="Coordination"; }
+          else if (d==="Thu"){ type="Active Recovery"; dur=20; cog="Relaxation"; }
+          else if (d==="Fri"){ type="Mixed Cardio-Strength"; dur=template.session_length; cog="Focus"; }
+          else if (d==="Sat"){ type="Optional Sport"; dur=30; cog="Strategy"; }
         } else {
-          if (d === "Mon") {
-            type = "Endurance (steady)";
-            dur = template.session_length;
-            cog = "Memory";
-          } else if (d === "Tue") {
-            type = "Strength+Balance";
-            dur = Math.round(template.session_length * 0.8);
-            cog = "Attention";
-          } else if (d === "Wed") {
-            type = "Adventure Mode";
-            dur = 20;
-            cog = "Decision-making";
-          } else if (d === "Thu") {
-            type = "Yoga/Tai Chi";
-            dur = 30;
-            cog = "Mindfulness";
-          } else if (d === "Fri") {
-            type = "Endurance intervals";
-            dur = template.session_length;
-            cog = "Executive Function";
-          } else if (d === "Sat") {
-            type = "Light aerobic + memory";
-            dur = 30;
-            cog = "Memory Recall";
-          }
+          if (d==="Mon"){ type="Endurance (steady)"; dur=template.session_length; cog="Memory"; }
+          else if (d==="Tue"){ type="Strength+Balance"; dur=Math.round(template.session_length*0.8); cog="Attention"; }
+          else if (d==="Wed"){ type="Adventure Mode"; dur=20; cog="Decision-making"; }
+          else if (d==="Thu"){ type="Yoga/Tai Chi"; dur=30; cog="Mindfulness"; }
+          else if (d==="Fri"){ type="Endurance intervals"; dur=template.session_length; cog="Executive Function"; }
+          else if (d==="Sat"){ type="Light aerobic + memory"; dur=30; cog="Memory Recall"; }
         }
         const prog = Math.floor((wk - 1) / 4) * 2;
         const finalDuration = type === "Rest" ? 0 : dur + prog;
@@ -213,7 +159,6 @@ document.addEventListener("DOMContentLoaded", () => {
     renderPlan(window.currentReport);
     setupWeeklyChecks(window.currentReport);
     resultDiv.style.display = "block";
-    updateAdherence();
   }
 
   // ======================================================
@@ -250,9 +195,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // ======================================================
-  // WEEKLY CHECKS
-  // ======================================================
+  // --- Weekly checks ---
   function setupWeeklyChecks(report) {
     const container = document.getElementById("weeklyChecks");
     container.innerHTML = "";
@@ -281,9 +224,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // --- Sync Buttons ---
+  // --- Sync ---
   function syncPlanButton(weekIndex, sessionIndex, isDone) {
-    const targetWeek = weeksDiv.querySelectorAll(".week-card")[weekIndex];
+    const planWeeks = weeksDiv.querySelectorAll(".week-card");
+    const targetWeek = planWeeks[weekIndex];
     if (!targetWeek) return;
     const targetButton = targetWeek.querySelectorAll(".day-btn")[sessionIndex];
     if (targetButton) targetButton.classList.toggle("done", isDone);
@@ -301,8 +245,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function updateAdherence() {
     const r = window.currentReport;
     if (!r) return;
-    let total = 0,
-      done = 0;
+    let total = 0, done = 0;
     r.weeks.forEach((w) => w.sessions.forEach((s) => { total++; if (s.done) done++; }));
     const pct = total ? Math.round((done / total) * 100) : 0;
     adherenceBar.style.width = pct + "%";
@@ -310,14 +253,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ======================================================
-  // PDF EXPORT (no arrows, safe text)
+  // PDF EXPORT
   // ======================================================
   document.getElementById("exportPdf").addEventListener("click", async () => {
     const r = window.currentReport;
-    if (!r) {
-      alert("Generate a plan first.");
-      return;
-    }
+    if (!r) { alert("Generate a plan first."); return; }
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit: "pt", format: "a4" });
@@ -329,14 +269,17 @@ document.addEventListener("DOMContentLoaded", () => {
     doc.setTextColor(60, 22, 102);
     doc.text("Clinical Exercise Prescription Report", margin, y);
     y += 30;
+
     doc.setFont("helvetica", "normal");
     doc.setFontSize(11);
+    doc.setTextColor(0, 0, 0);
     doc.text(`Participant: ${r.participant}`, margin, y);
     doc.text(`Genotype: ${r.genotype}`, margin + 300, y);
     y += 20;
     doc.text(`Generated: ${new Date().toLocaleDateString()}`, margin, y);
     y += 25;
 
+    // --- Assessment Summary ---
     const headers = [["Measure", "Pre", "Post", "Change", "Status"]];
     const rows = [];
     const lowerIsBetter = ["tmt_a", "tmt_b", "tug"];
@@ -359,18 +302,17 @@ document.addEventListener("DOMContentLoaded", () => {
       body: rows,
       theme: "grid",
       styles: { fontSize: 10, cellPadding: 5 },
-      headStyles: { fillColor: [60, 22, 102], textColor: 255, fontStyle: "bold" }
+      headStyles: { fillColor: [60, 22, 102], textColor: 255, fontStyle: "bold" },
     });
-    y = doc.lastAutoTable.finalY + 20;
+    y = doc.lastAutoTable.finalY + 25;
 
     const radarCanvas = document.createElement("canvas");
-    radarCanvas.width = 400;
-    radarCanvas.height = 400;
+    radarCanvas.width = 400; radarCanvas.height = 400;
     const ctx = radarCanvas.getContext("2d");
     new Chart(ctx, {
       type: "radar",
       data: {
-        labels: Object.keys(r.pre).map((k) => k.toUpperCase()),
+        labels: Object.keys(r.pre).map(k => k.toUpperCase()),
         datasets: [
           { label: "Pre", data: Object.values(r.pre), borderColor: "#f26b00", backgroundColor: "rgba(242,107,0,0.2)" },
           { label: "Post", data: Object.values(r.post), borderColor: "#6b3fa0", backgroundColor: "rgba(107,63,160,0.2)" }
@@ -378,19 +320,57 @@ document.addEventListener("DOMContentLoaded", () => {
       },
       options: { responsive: false, scales: { r: { beginAtZero: true } } }
     });
-    await new Promise((res) => setTimeout(res, 700));
+    await new Promise(res => setTimeout(res, 700));
     const img = radarCanvas.toDataURL("image/png");
     doc.addImage(img, "PNG", margin, y, 400, 400);
     y += 420;
 
     const total = r.weeks.reduce((sum, w) => sum + w.sessions.length, 0);
-    const done = r.weeks.reduce((sum, w) => sum + w.sessions.filter((s) => s.done).length, 0);
+    const done = r.weeks.reduce((sum, w) => sum + w.sessions.filter(s => s.done).length, 0);
     const pct = total ? Math.round((done / total) * 100) : 0;
     doc.text(`Overall adherence: ${done}/${total} sessions completed (${pct}%)`, margin, y);
     y += 20;
 
     const planHeaders = [["Week", "Day", "Type", "Duration (min)", "Cognitive Focus"]];
     const planRows = [];
-    r.weeks.forEach((w) => {
-      w.sessions.forEach((s) => {
-        if (s.type !== "Rest") planRows
+    r.weeks.forEach(w => w.sessions.forEach(s => {
+      if (s.type !== "Rest") planRows.push([`Week ${w.week}`, s.day, s.type, s.duration_min, s.cognitive]);
+    }));
+    doc.autoTable({
+      startY: y,
+      head: planHeaders,
+      body: planRows,
+      theme: "grid",
+      styles: { fontSize: 9, cellPadding: 4 },
+      headStyles: { fillColor: [107, 63, 160], textColor: 255 },
+    });
+    doc.save(`${r.participant.replace(/\s+/g, "_")}_report.pdf`);
+  });
+
+  // ======================================================
+  // PWA Install
+  // ======================================================
+  let deferredPrompt;
+  const installContainer = document.getElementById("installContainer");
+  const installBtn = document.getElementById("installBtn");
+
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (installContainer) installContainer.style.display = "block";
+  });
+
+  if (installBtn) {
+    installBtn.addEventListener("click", async () => {
+      if (!deferredPrompt) return;
+      installContainer.style.display = "none";
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+    });
+  }
+
+  window.addEventListener("appinstalled", () => {
+    if (installContainer) installContainer.style.display = "none";
+  });
+});
