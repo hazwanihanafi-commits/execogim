@@ -233,7 +233,6 @@ document.addEventListener("DOMContentLoaded", () => {
         btn.addEventListener("click", () => {
           s.done = !s.done;
           btn.classList.toggle("done");
-          syncWeeklyButton(wi, si, s.done);
           updateAdherence();
         });
         div.appendChild(btn);
@@ -241,6 +240,48 @@ document.addEventListener("DOMContentLoaded", () => {
       weeksDiv.appendChild(div);
     });
   }
+// ======================================================
+// FUNCTION: SETUP WEEKLY CHECKS (Save & Restore Progress)
+// ======================================================
+function setupWeeklyChecks(report) {
+  // Load existing data from localStorage
+  const saved = localStorage.getItem("execogim_progress");
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      report.weeks.forEach((w, wi) => {
+        w.sessions.forEach((s, si) => {
+          if (parsed[wi]?.[si]) s.done = true;
+        });
+      });
+    } catch (e) {
+      console.error("Error parsing saved progress:", e);
+    }
+  }
+
+  // Save progress automatically on every change
+  updateAdherence = function () {
+    const data = report.weeks.map((w) =>
+      w.sessions.map((s) => (s.done ? 1 : 0))
+    );
+    localStorage.setItem("execogim_progress", JSON.stringify(data));
+
+    const total = report.weeks.reduce(
+      (sum, w) => sum + w.sessions.length,
+      0
+    );
+    const done = report.weeks.reduce(
+      (sum, w) => sum + w.sessions.filter((s) => s.done).length,
+      0
+    );
+    const pct = Math.round((done / total) * 100);
+    adherenceBar.style.width = `${pct}%`;
+    adherencePct.textContent = `${pct}%`;
+  };
+
+  // Initialize progress bar
+  updateAdherence();
+}
 
   // ======================================================
   // PDF EXPORT
